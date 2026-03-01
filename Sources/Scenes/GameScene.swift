@@ -5,10 +5,10 @@ class GameScene: SKScene {
     // MARK: - Game Objects
     var paddle: SKSpriteNode!
     var ball: SKSpriteNode!
-    var bricks: [SKSpriteNode] = []
     var lasers: [SKSpriteNode] = []
     var enemyLasers: [SKSpriteNode] = []
     var boss: SKSpriteNode!
+    var bossHealthBar: SKSpriteNode!
     var bossHealthFill: SKSpriteNode!
     
     // MARK: - Game State
@@ -18,32 +18,27 @@ class GameScene: SKScene {
     var score = 0
     var scoreLabel: SKLabelNode!
     var canShoot = true
-    var level = 1
-    var bossHealth = 100
-    var maxBossHealth = 100
+    var bossSpeed: CGFloat = 300
+    var bossHP = 10
+    var maxBossHP = 10
     var lastEnemyShotTime: TimeInterval = 0
+    var lastPlayerShotTime: TimeInterval = 0
+    let playerShootInterval: TimeInterval = 0.4
     
     // MARK: - Constants
     let paddleWidth: CGFloat = 60
     let paddleHeight: CGFloat = 20
     let ballRadius: CGFloat = 10
-    let brickRows = 3
-    let brickCols = 6
-    let brickHeight: CGFloat = 20
-    let brickPadding: CGFloat = 5
     let laserSpeed: CGFloat = 500
-    let enemyLaserSpeed: CGFloat = 300
-    let shootCooldown: TimeInterval = 0.3
-    let enemyShootInterval: TimeInterval = 1.5
+    let enemyLaserSpeed: CGFloat = 420
+    let shootCooldown: TimeInterval = 0.25
+    let enemyShootInterval: TimeInterval = 0.6
     
     // MARK: - Colors
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
     let ballColor = UIColor.white
     let laserColor = UIColor.red
     let enemyLaserColor = UIColor.yellow
-    let brickColors: [UIColor] = [
-        UIColor.red, UIColor.orange, UIColor.yellow, UIColor.green, UIColor.blue
-    ]
     let bossColor = UIColor(red: 0.8, green: 0.1, blue: 0.1, alpha: 1.0)
     
     // MARK: - Lifecycle
@@ -60,17 +55,15 @@ class GameScene: SKScene {
         backgroundColor = SKColor.black
         
         removeAllChildren()
-        bricks.removeAll()
         lasers.removeAll()
         enemyLasers.removeAll()
         
         setupPaddle()
         setupBall()
         setupBoss()
-        setupBricks()
         setupScoreLabel()
         
-        let tapToStart = SKLabelNode(text: "Tap: Start | Shoot")
+        let tapToStart = SKLabelNode(text: "Tap to Start")
         tapToStart.name = "startLabel"
         tapToStart.fontSize = 24
         tapToStart.fontColor = .white
@@ -81,6 +74,9 @@ class GameScene: SKScene {
         isGameOver = false
         score = 0
         canShoot = true
+        bossSpeed = 300
+        bossHP = 10
+        maxBossHP = 10
     }
     
     func setupPaddle() {
@@ -98,54 +94,38 @@ class GameScene: SKScene {
     }
     
     func setupBoss() {
-        let bossWidth: CGFloat = 120
-        let bossHeight: CGFloat = 40
+        let bossWidth: CGFloat = 70
+        let bossHeight: CGFloat = 20
         
         boss = SKSpriteNode(color: bossColor, size: CGSize(width: bossWidth, height: bossHeight))
         boss.position = CGPoint(x: size.width / 2, y: size.height - 60)
         boss.name = "boss"
         addChild(boss)
         
-        // Health bar
-        let barWidth: CGFloat = 150
-        let barHeight: CGFloat = 10
-        bossHealthFill = SKSpriteNode(color: UIColor.green, size: CGSize(width: barWidth - 2, height: barHeight - 2))
-        bossHealthFill.position = CGPoint(x: size.width / 2, y: size.height - 25)
-        bossHealthFill.name = "bossHealthFill"
-        addChild(bossHealthFill)
+        // HP Bar background
+        let barWidth: CGFloat = 100
+        let barHeight: CGFloat = 8
+        bossHealthBar = SKSpriteNode(color: UIColor.darkGray, size: CGSize(width: barWidth, height: barHeight))
+        bossHealthBar.position = CGPoint(x: size.width / 2, y: 60)
+        addChild(bossHealthBar)
         
-        maxBossHealth = 80 + (level - 1) * 30
-        bossHealth = maxBossHealth
+        // HP Bar fill
+        bossHealthFill = SKSpriteNode(color: .red, size: CGSize(width: barWidth - 2, height: barHeight - 2))
+        bossHealthFill.position = CGPoint(x: size.width / 2, y: 60)
+        addChild(bossHealthFill)
     }
     
-    func setupBricks() {
-        bricks.removeAll()
-        let brickWidth = (size.width - CGFloat(brickCols + 1) * brickPadding) / CGFloat(brickCols)
-        
-        for row in 0..<brickRows {
-            for col in 0..<brickCols {
-                let brick = SKSpriteNode(
-                    color: brickColors[row % brickColors.count],
-                    size: CGSize(width: brickWidth - 2, height: brickHeight)
-                )
-                
-                let x = brickPadding + brickWidth/2 + CGFloat(col) * (brickWidth + brickPadding)
-                let y = size.height - 130 - brickHeight/2 - CGFloat(row) * (brickHeight + brickPadding)
-                
-                brick.position = CGPoint(x: x, y: y)
-                brick.name = "brick"
-                
-                bricks.append(brick)
-                addChild(brick)
-            }
-        }
+    func updateBossHP() {
+        let barWidth: CGFloat = 98
+        let percent = CGFloat(bossHP) / CGFloat(maxBossHP)
+        bossHealthFill.size.width = max(0, barWidth * percent)
     }
     
     func setupScoreLabel() {
         scoreLabel = SKLabelNode(text: "Score: 0")
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 15, y: size.height - 35)
+        scoreLabel.position = CGPoint(x: 15, y: size.height - 50)
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
     }
@@ -171,7 +151,7 @@ class GameScene: SKScene {
         guard !isGameOver else { return }
         
         let enemyLaser = SKSpriteNode(color: enemyLaserColor, size: CGSize(width: 5, height: 10))
-        enemyLaser.position = CGPoint(x: boss.position.x + CGFloat.random(in: -20...20), y: boss.position.y - 30)
+        enemyLaser.position = CGPoint(x: boss.position.x + CGFloat.random(in: -10...10), y: boss.position.y - 15)
         enemyLaser.name = "enemyLaser"
         enemyLasers.append(enemyLaser)
         addChild(enemyLaser)
@@ -192,7 +172,6 @@ class GameScene: SKScene {
             return
         }
         
-        shootLaser()
         movePaddle(to: touch.location(in: self).x)
     }
     
@@ -216,16 +195,67 @@ class GameScene: SKScene {
         ballVelocity = CGVector(dx: cos(angle) * speed, dy: abs(sin(angle)) * speed)
     }
     
+    // MARK: - Boss AI
+    
+    func updateBossAI() {
+        let bossWidth: CGFloat = 70
+        
+        // Ball is going up - try to intercept like a paddle!
+        if ballVelocity.dy > 0 {
+            // Calculate where ball will be when it reaches boss level
+            let timeToBoss = (boss.position.y - ball.position.y) / ballVelocity.dy
+            let predictedX = ball.position.x + ballVelocity.dx * timeToBoss
+            
+            // Move to intercept
+            if predictedX > boss.position.x + 5 {
+                boss.position.x += bossSpeed * (1/60)
+            } else if predictedX < boss.position.x - 5 {
+                boss.position.x -= bossSpeed * (1/60)
+            }
+        } else {
+            // Ball going down - return to center slowly
+            let centerX = size.width / 2
+            if centerX > boss.position.x + 20 {
+                boss.position.x += (bossSpeed * 0.5) * (1/60)
+            } else if centerX < boss.position.x - 20 {
+                boss.position.x -= (bossSpeed * 0.5) * (1/60)
+            }
+        }
+        
+        // Avoid lasers coming up!
+        for laser in lasers {
+            if laser.position.y > boss.position.y - 40 && laser.position.y < boss.position.y + 20 {
+                if laser.position.x < boss.position.x && boss.position.x < size.width - bossWidth/2 {
+                    boss.position.x += bossSpeed * 0.9 * (1/60)
+                } else if laser.position.x > boss.position.x && boss.position.x > bossWidth/2 {
+                    boss.position.x -= bossSpeed * 0.9 * (1/60)
+                }
+            }
+        }
+        
+        // Keep boss in bounds
+        boss.position.x = max(bossWidth/2, min(size.width - bossWidth/2, boss.position.x))
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         guard isBallActive, !isGameOver else { return }
         
         let deltaTime = 1.0 / 60.0
         
+        // Update Boss AI
+        updateBossAI()
+        
+        // Auto shoot lasers
+        if currentTime - lastPlayerShotTime > playerShootInterval {
+            shootLaser()
+            lastPlayerShotTime = currentTime
+        }
+        
         // Move ball
         ball.position.x += ballVelocity.dx * deltaTime
         ball.position.y += ballVelocity.dy * deltaTime
         
-        // Wall collisions
+        // Wall collisions (left/right)
         if ball.position.x - ballRadius < 0 {
             ball.position.x = ballRadius
             ballVelocity.dx = abs(ballVelocity.dx)
@@ -235,16 +265,22 @@ class GameScene: SKScene {
             ballVelocity.dx = -abs(ballVelocity.dx)
         }
         
-        let ceilingY = size.height * 0.90
-        if ball.position.y + ballRadius > ceilingY {
-            ball.position.y = ceilingY - ballRadius
-            ballVelocity.dy = -abs(ballVelocity.dy)
+        // Ball passes boss - YOU WIN!
+        if ball.position.y > boss.position.y + 30 {
+            winGame()
+            return
         }
         
-        // Boss collision
-        if ball.frame.intersects(boss.frame) {
+        // Boss collision - bounces ball back down!
+        let bossWidth: CGFloat = 70
+        let bossHeight: CGFloat = 20
+        let bossFrame = CGRect(x: boss.position.x - bossWidth/2, y: boss.position.y - bossHeight/2, width: bossWidth, height: bossHeight)
+        
+        if ball.frame.intersects(bossFrame) {
             ballVelocity.dy = -abs(ballVelocity.dy)
-            damageBoss(5)
+            let hitPoint = (ball.position.x - boss.position.x) / (bossWidth / 2)
+            ballVelocity.dx += hitPoint * 120
+            ball.position.y = boss.position.y - bossHeight/2 - ballRadius - 1
         }
         
         // Paddle collision
@@ -252,18 +288,6 @@ class GameScene: SKScene {
             ballVelocity.dy = abs(ballVelocity.dy)
             let hitPoint = (ball.position.x - paddle.position.x) / (paddleWidth / 2)
             ballVelocity.dx += hitPoint * 100
-        }
-        
-        // Brick collisions (ball)
-        for brick in bricks {
-            if ball.frame.intersects(brick.frame) {
-                brick.removeFromParent()
-                bricks.removeAll { $0 == brick }
-                ballVelocity.dy = -ballVelocity.dy
-                score += 5
-                scoreLabel.text = "Score: \(score)"
-                break
-            }
         }
         
         // Player lasers
@@ -277,30 +301,42 @@ class GameScene: SKScene {
                 continue
             }
             
-            // Laser hits boss
-            if laser.frame.intersects(boss.frame) {
-                damageBoss(8)
+            // Ball bounces off laser
+            if ball.frame.intersects(laser.frame) {
+                ballVelocity.dy = abs(ballVelocity.dy)
+                ballVelocity.dx += CGFloat.random(in: -30...30)
                 laser.removeFromParent()
                 lasers.remove(at: i)
+                score += 5
+                scoreLabel.text = "Score: \(score)"
                 continue
             }
             
-            // Laser hits bricks
-            for j in stride(from: bricks.count - 1, through: 0, by: -1) {
-                if laser.frame.intersects(bricks[j].frame) {
-                    bricks[j].removeFromParent()
-                    bricks.remove(at: j)
-                    laser.removeFromParent()
-                    lasers.remove(at: i)
-                    score += 5
-                    scoreLabel.text = "Score: \(score)"
-                    break
+            // Laser hits boss - DAMAGE BOSS!
+            if laser.frame.intersects(bossFrame) {
+                laser.removeFromParent()
+                lasers.remove(at: i)
+                bossHP -= 1
+                updateBossHP()
+                score += 10
+                scoreLabel.text = "Score: \(score)"
+                
+                // Flash boss
+                boss.alpha = 0.5
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.boss.alpha = 1.0
                 }
+                
+                if bossHP <= 0 {
+                    winGame()
+                    return
+                }
+                continue
             }
         }
         
         // Enemy lasers
-        if currentTime - lastEnemyShotTime > enemyShootInterval / Double(level) {
+        if currentTime - lastEnemyShotTime > enemyShootInterval {
             enemyShoot()
             lastEnemyShotTime = currentTime
         }
@@ -315,6 +351,7 @@ class GameScene: SKScene {
                 continue
             }
             
+            // Enemy laser hits paddle - GAME OVER!
             if enemyLaser.frame.intersects(paddle.frame) {
                 enemyLaser.removeFromParent()
                 enemyLasers.remove(at: i)
@@ -323,44 +360,28 @@ class GameScene: SKScene {
             }
         }
         
-        // Ball falls
+        // Ball falls below paddle - GAME OVER!
         if ball.position.y < 0 {
             gameOver()
         }
-        
-        // Win
-        if bossHealth <= 0 {
-            levelUp()
-        }
     }
     
-    func damageBoss(_ damage: Int) {
-        bossHealth -= damage
-        let percent = CGFloat(bossHealth) / CGFloat(maxBossHealth)
-        let barWidth: CGFloat = 148
-        bossHealthFill.size.width = max(0, barWidth * percent)
+    func winGame() {
+        isBallActive = false
+        isGameOver = true
         
-        if percent < 0.3 {
-            bossHealthFill.color = .red
-        } else if percent < 0.6 {
-            bossHealthFill.color = .orange
-        }
-    }
-    
-    func levelUp() {
-        level += 1
-        score += 50 * level
+        let winLabel = SKLabelNode(text: "YOU WIN!")
+        winLabel.fontSize = 48
+        winLabel.fontColor = .green
+        winLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        addChild(winLabel)
         
-        let levelLabel = SKLabelNode(text: "LEVEL \(level)!")
-        levelLabel.fontSize = 40
-        levelLabel.fontColor = .green
-        levelLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        addChild(levelLabel)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            levelLabel.removeFromParent()
-            self?.setupGame()
-        }
+        let restartLabel = SKLabelNode(text: "Tap to Play Again")
+        restartLabel.fontSize = 20
+        restartLabel.fontColor = .white
+        restartLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        restartLabel.name = "restart"
+        addChild(restartLabel)
     }
     
     func gameOver() {
