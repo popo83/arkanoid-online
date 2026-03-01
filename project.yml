@@ -1,0 +1,40 @@
+name: ArkanoidOnline
+options:
+  bundleIdPrefix: com.yourname
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+
+targets:
+  ArkanoidOnline:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      - Resources
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.arkanoidonline
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Arkanoid Online
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
