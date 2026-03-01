@@ -8,8 +8,6 @@ class GameScene: SKScene {
     var lasers: [SKSpriteNode] = []
     var enemyLasers: [SKSpriteNode] = []
     var boss: SKSpriteNode!
-    var bossHealthBar: SKSpriteNode!
-    var bossHealthFill: SKSpriteNode!
     
     // MARK: - Game State
     var ballVelocity: CGVector = .zero
@@ -21,6 +19,8 @@ class GameScene: SKScene {
     var bossSpeed: CGFloat = 300
     var bossHP = 10
     var maxBossHP = 10
+    var playerHP = 3
+    var maxPlayerHP = 3
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
     let playerShootInterval: TimeInterval = 0.4
@@ -77,6 +77,8 @@ class GameScene: SKScene {
         bossSpeed = 300
         bossHP = 10
         maxBossHP = 10
+        playerHP = 3
+        maxPlayerHP = 3
     }
     
     func setupPaddle() {
@@ -101,24 +103,40 @@ class GameScene: SKScene {
         boss.position = CGPoint(x: size.width / 2, y: size.height - 60)
         boss.name = "boss"
         addChild(boss)
-        
-        // HP Bar background
-        let barWidth: CGFloat = 100
-        let barHeight: CGFloat = 8
-        bossHealthBar = SKSpriteNode(color: UIColor.darkGray, size: CGSize(width: barWidth, height: barHeight))
-        bossHealthBar.position = CGPoint(x: size.width / 2, y: 60)
-        addChild(bossHealthBar)
-        
-        // HP Bar fill
-        bossHealthFill = SKSpriteNode(color: .red, size: CGSize(width: barWidth - 2, height: barHeight - 2))
-        bossHealthFill.position = CGPoint(x: size.width / 2, y: 60)
-        addChild(bossHealthFill)
     }
     
-    func updateBossHP() {
-        let barWidth: CGFloat = 98
+    func updateBossAppearance() {
+        let bossWidth: CGFloat = 70
         let percent = CGFloat(bossHP) / CGFloat(maxBossHP)
-        bossHealthFill.size.width = max(0, barWidth * percent)
+        
+        // Boss shrinks as HP decreases
+        boss.size.width = bossWidth * percent
+        
+        // Color changes: green -> yellow -> red
+        if percent > 0.6 {
+            boss.color = UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0) // green
+        } else if percent > 0.3 {
+            boss.color = UIColor(red: 0.8, green: 0.8, blue: 0.2, alpha: 1.0) // yellow
+        } else {
+            boss.color = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0) // red
+        }
+    }
+    
+    func updatePaddleAppearance() {
+        let paddleMaxWidth: CGFloat = 60
+        let percent = CGFloat(playerHP) / CGFloat(maxPlayerHP)
+        
+        // Paddle shrinks as HP decreases
+        paddle.size.width = paddleMaxWidth * percent
+        
+        // Color changes: blue -> yellow -> red
+        if percent > 0.6 {
+            paddle.color = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0) // blue
+        } else if percent > 0.3 {
+            paddle.color = UIColor(red: 0.8, green: 0.8, blue: 0.2, alpha: 1.0) // yellow
+        } else {
+            paddle.color = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0) // red
+        }
     }
     
     func setupScoreLabel() {
@@ -317,7 +335,7 @@ class GameScene: SKScene {
                 laser.removeFromParent()
                 lasers.remove(at: i)
                 bossHP -= 1
-                updateBossHP()
+                updateBossAppearance()
                 score += 10
                 scoreLabel.text = "Score: \(score)"
                 
@@ -351,18 +369,65 @@ class GameScene: SKScene {
                 continue
             }
             
-            // Enemy laser hits paddle - GAME OVER!
+            // Enemy laser - hits ball from below and boosts it up!
+            if enemyLaser.frame.intersects(ball.frame) {
+                enemyLaser.removeFromParent()
+                enemyLasers.remove(at: i)
+                // Boost ball upward
+                ballVelocity.dy = abs(ballVelocity.dy) * 1.3
+                ballVelocity.dx += CGFloat.random(in: -20...20)
+                continue
+            }
+            
+            // Enemy laser hits paddle - lose HP!
             if enemyLaser.frame.intersects(paddle.frame) {
                 enemyLaser.removeFromParent()
                 enemyLasers.remove(at: i)
-                gameOver()
-                return
+                
+                playerHP -= 1
+                updatePaddleAppearance()
+                
+                // Flash paddle
+                paddle.alpha = 0.5
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self.paddle.alpha = 1.0
+                }
+                
+                if playerHP <= 0 {
+                    gameOver()
+                    return
+                }
+                continue
             }
         }
         
-        // Ball falls below paddle - GAME OVER!
+        // Ball falls below paddle - lose HP!
         if ball.position.y < 0 {
-            gameOver()
+            playerHP -= 1
+            updatePaddleAppearance()
+            
+            // Flash paddle
+            paddle.alpha = 0.5
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.paddle.alpha = 1.0
+            }
+            
+            if playerHP <= 0 {
+                gameOver()
+            } else {
+                // Reset ball position
+                ball.position = CGPoint(x: size.width / 2, y: 140)
+                ballVelocity = .zero
+                isBallActive = false
+                
+                // Show tap to continue
+                let tapToContinue = SKLabelNode(text: "Tap to Continue")
+                tapToContinue.name = "startLabel"
+                tapToContinue.fontSize = 24
+                tapToContinue.fontColor = .white
+                tapToContinue.position = CGPoint(x: size.width / 2, y: size.height / 2)
+                addChild(tapToContinue)
+            }
         }
     }
     
