@@ -16,23 +16,26 @@ class GameScene: SKScene {
     var score = 0
     var scoreLabel: SKLabelNode!
     var canShoot = true
-    var bossSpeed: CGFloat = 300
+    var bossSpeed: CGFloat = 250
     var bossHP = 10
     var maxBossHP = 10
     var playerHP = 3
     var maxPlayerHP = 3
+    var level = 1
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
     let playerShootInterval: TimeInterval = 0.4
+    
+    // Level settings
+    var enemyShootInterval: TimeInterval = 0.6
+    var enemyLaserSpeed: CGFloat = 350
     
     // MARK: - Constants
     let paddleWidth: CGFloat = 60
     let paddleHeight: CGFloat = 20
     let ballRadius: CGFloat = 10
     let laserSpeed: CGFloat = 500
-    let enemyLaserSpeed: CGFloat = 420
     let shootCooldown: TimeInterval = 0.25
-    let enemyShootInterval: TimeInterval = 0.6
     
     // MARK: - Colors
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
@@ -74,11 +77,26 @@ class GameScene: SKScene {
         isGameOver = false
         score = 0
         canShoot = true
-        bossSpeed = 300
-        bossHP = 10
-        maxBossHP = 10
+        level = 1
         playerHP = 3
         maxPlayerHP = 3
+        
+        setupLevelParameters()
+    }
+    
+    func setupLevelParameters() {
+        // Level 1: HP=10, speed=250, fire=0.6s, laser=350
+        // Level 2: HP=15, speed=300, fire=0.5s, laser=400
+        // Level 3: HP=20, speed=350, fire=0.4s, laser=450
+        // Level 4: HP=25, speed=400, fire=0.3s, laser=500
+        // Level 5+: HP+=5, speed+=50, fire-0.05s, laser+=50
+        
+        maxBossHP = 10 + (level - 1) * 5
+        bossHP = maxBossHP
+        bossSpeed = 250 + CGFloat(level - 1) * 50
+        enemyShootInterval = 0.6 - Double(level - 1) * 0.1
+        if enemyShootInterval < 0.2 { enemyShootInterval = 0.2 }
+        enemyLaserSpeed = 350 + CGFloat(level - 1) * 50
     }
     
     func setupPaddle() {
@@ -140,10 +158,10 @@ class GameScene: SKScene {
     }
     
     func setupScoreLabel() {
-        scoreLabel = SKLabelNode(text: "Score: 0")
-        scoreLabel.fontSize = 20
+        scoreLabel = SKLabelNode(text: "Lv.\(level) | Score: \(score)")
+        scoreLabel.fontSize = 18
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 15, y: size.height - 50)
+        scoreLabel.position = CGPoint(x: 15, y: size.height - 30)
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
     }
@@ -181,7 +199,15 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         
         if isGameOver {
-            setupGame()
+            if childNode(withName: "nextLevel") != nil {
+                // Level up!
+                level += 1
+                setupGame()
+            } else {
+                // Full restart
+                level = 1
+                setupGame()
+            }
             return
         }
         
@@ -326,7 +352,7 @@ class GameScene: SKScene {
                 laser.removeFromParent()
                 lasers.remove(at: i)
                 score += 5
-                scoreLabel.text = "Score: \(score)"
+                scoreLabel.text = "Lv.\(level) | Score: \(score)"
                 continue
             }
             
@@ -337,7 +363,7 @@ class GameScene: SKScene {
                 bossHP -= 1
                 updateBossAppearance()
                 score += 10
-                scoreLabel.text = "Score: \(score)"
+                scoreLabel.text = "Lv.\(level) | Score: \(score)"
                 
                 // Flash boss
                 boss.alpha = 0.5
@@ -435,18 +461,18 @@ class GameScene: SKScene {
         isBallActive = false
         isGameOver = true
         
-        let winLabel = SKLabelNode(text: "YOU WIN!")
-        winLabel.fontSize = 48
-        winLabel.fontColor = .green
-        winLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        addChild(winLabel)
+        let levelUpLabel = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
+        levelUpLabel.fontSize = 36
+        levelUpLabel.fontColor = .green
+        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 30)
+        addChild(levelUpLabel)
         
-        let restartLabel = SKLabelNode(text: "Tap to Play Again")
-        restartLabel.fontSize = 20
-        restartLabel.fontColor = .white
-        restartLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
-        restartLabel.name = "restart"
-        addChild(restartLabel)
+        let nextLabel = SKLabelNode(text: "Tap for Level \(level + 1)")
+        nextLabel.fontSize = 20
+        nextLabel.fontColor = .white
+        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
+        nextLabel.name = "nextLevel"
+        addChild(nextLabel)
     }
     
     func gameOver() {
