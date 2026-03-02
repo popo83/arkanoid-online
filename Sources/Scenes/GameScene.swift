@@ -84,8 +84,8 @@ class GameScene: SKScene {
     }
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
     let ballColor = UIColor.white
-    let laserColor = UIColor.red
-    let enemyLaserColor = UIColor.yellow
+    let laserColor = UIColor.yellow  // Player lasers
+    let enemyLaserColor = UIColor.red  // Boss lasers
     let bossColor = UIColor(red: 0.8, green: 0.1, blue: 0.1, alpha: 1.0)
     
     // MARK: - Lifecycle
@@ -104,15 +104,15 @@ class GameScene: SKScene {
         removeAllChildren()
         
         // Title
-        let titleLabel = SKLabelNode(text: "ARKANOID")
+        let titleLabel = SKLabelNode(text: "AInoid")
         titleLabel.fontSize = 48
-        titleLabel.fontColor = .white
+        titleLabel.fontColor = .cyan
         titleLabel.position = CGPoint(x: size.width / 2, y: size.height - 120)
         addChild(titleLabel)
         
-        let subtitleLabel = SKLabelNode(text: "BOSS BATTLE")
-        subtitleLabel.fontSize = 28
-        subtitleLabel.fontColor = .red
+        let subtitleLabel = SKLabelNode(text: "Challenge the AI")
+        subtitleLabel.fontSize = 24
+        subtitleLabel.fontColor = .green
         subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         addChild(subtitleLabel)
         
@@ -261,7 +261,7 @@ class GameScene: SKScene {
         // DEBUG PANEL - Show difficulty + AI values in CENTER
         let aiLevel = level
         let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
-        let mistakeChance = max(0.15 - (Double(aiLevel) - 1) * 0.05, 0.02)
+        let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
         let debugText = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
         let debugLabel = SKLabelNode(text: debugText)
         debugLabel.name = "debugLabel"
@@ -451,7 +451,7 @@ class GameScene: SKScene {
         let aiSkill = aiLevelDouble / 10.0
         
         // Error chance decreases FASTER with level
-        let mistakeChance = max(0.15 - (aiLevelDouble - 1) * 0.05, 0.02)  // 30% at lvl 1, 2% at lvl 8+
+        let mistakeChance = max(0.30 - (aiLevelDouble - 1) * 0.05, 0.02)  // 30% at lvl 1, 2% at lvl 8+
         let makeMistake = Double.random(in: 0...1) < mistakeChance
         
         // Precision improves with level
@@ -511,7 +511,7 @@ class GameScene: SKScene {
         // Update debug panels
         let aiLevel = level
         let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
-        let mistakeChance = max(0.15 - (Double(aiLevel) - 1) * 0.05, 0.02)
+        let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
         if let debug = childNode(withName: "debugLabel") as? SKLabelNode {
             debug.text = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
         }
@@ -762,8 +762,8 @@ class GameScene: SKScene {
         isGameOver = true
         gameState = "gameover"
         
-        // Save high score
-        if score > highScore {
+        // Save high score (only if not in infinite HP mode)
+        if score > highScore && !infiniteHP {
             highScore = score
             UserDefaults.standard.set(highScore, forKey: "highScore")
         }
