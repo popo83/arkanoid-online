@@ -201,8 +201,10 @@ class GameScene: SKScene {
         }
         removeAllChildren()
         
-        // Start background music
-        playBackgroundMusic()
+        // Start background music with delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.playBackgroundMusic()
+        }
         
         // Title
         let titleLabel = SKLabelNode(text: "4IN01D")
@@ -361,6 +363,9 @@ class GameScene: SKScene {
         
         // Paddle shrinks as HP decreases
         paddle.size.width = paddleMaxWidth * percent
+        
+        // Enable color blending
+        paddle.colorBlendFactor = 1.0
         
         // Color changes: blue -> yellow -> red
         if percent > 0.6 {
@@ -1105,3 +1110,4 @@ class GameScene: SKScene {
         addChild(menuLabel)
     }
 }
+
