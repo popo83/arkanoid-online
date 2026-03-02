@@ -161,8 +161,8 @@ class GameScene: SKScene {
         // Load total play time
         totalPlayTime = UserDefaults.standard.double(forKey: "totalPlayTime")
         
-        // Show loading screen first (3 seconds minimum)
-        showLoadingScreen()
+        // Go directly to menu (loading screen disabled for now)
+        showMenu()
     }
     
     func showLoadingScreen() {
