@@ -567,30 +567,25 @@ class GameScene: SKScene {
     }
     
     func createExplosion(at position: CGPoint) {
-        let emitter = SKEmitterNode()
-        emitter.particleBirthRate = 200
-        emitter.numParticlesToEmit = 50
-        emitter.particleLifetime = 1.0
-        emitter.particleLifetimeRange = 0.5
-        emitter.particleSpeed = 200
-        emitter.particleSpeedRange = 100
-        emitter.particleAlpha = 1.0
-        emitter.particleAlphaRange = 0.2
-        emitter.particleAlphaSpeed = -0.8
-        emitter.particleScale = 0.8
-        emitter.particleScaleRange = 0.4
-        emitter.particleScaleSpeed = -0.5
-        emitter.particleColor = .orange
-        emitter.particleColorBlendFactor = 1.0
-        emitter.particleBlendMode = .alpha
-        emitter.emissionAngle = CGFloat.pi * 2
-        emitter.emissionAngleRange = CGFloat.pi * 2
-        emitter.position = position
-        emitter.targetNode = self
-        addChild(emitter)
-        let wait = SKAction.wait(forDuration: 2.0)
-        let remove = SKAction.removeFromParent()
-        emitter.run(SKAction.sequence([wait, remove]))
+        // Create multiple small sprites as explosion particles
+        for _ in 0..<15 {
+            let particle = SKSpriteNode(color: .orange, size: CGSize(width: 8, height: 8))
+            particle.position = position
+            particle.alpha = 1.0
+            particle.name = "explosionParticle"
+            addChild(particle)
+            
+            // Random direction
+            let angle = CGFloat.random(in: 0...(CGFloat.pi * 2))
+            let speed = CGFloat.random(in: 50...150)
+            let dx = cos(angle) * speed
+            let dy = sin(angle) * speed
+            
+            let move = SKAction.moveBy(x: dx, y: dy, duration: 0.5)
+            let fade = SKAction.fadeOut(withDuration: 0.5)
+            let remove = SKAction.removeFromParent()
+            particle.run(SKAction.sequence([move, fade, remove]))
+        }
     }
     
     // MARK: - Boss AI
