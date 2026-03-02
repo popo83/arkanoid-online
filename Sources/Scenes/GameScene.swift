@@ -181,10 +181,12 @@ class GameScene: SKScene {
         addChild(subLabel)
         
         // Show menu after 3 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+        let wait = SKAction.wait(forDuration: 3.0)
+        let showMenu = SKAction.run { [weak self] in
             self?.removeAllChildren()
             self?.showMenu()
         }
+        run(SKAction.sequence([wait, showMenu]))
     }
     
     func showMenu() {
