@@ -23,6 +23,7 @@ class GameScene: SKScene {
     var playerHP = 3
     var maxPlayerHP = 3
     var level = 1
+    var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
@@ -129,6 +130,14 @@ class GameScene: SKScene {
         startButton.fontColor = .green
         startButton.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(startButton)
+        
+        // DEBUG: Infinite HP Button
+        let debugButton = SKLabelNode(text: "DEBUG: INFINITE HP")
+        debugButton.name = "debugInfiniteHP"
+        debugButton.fontSize = 14
+        debugButton.fontColor = .red
+        debugButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        addChild(debugButton)
         
         // Instructions
         let instrLabel = SKLabelNode(text: "Tap to shoot | Dodge enemy lasers")
@@ -307,6 +316,21 @@ class GameScene: SKScene {
         
         // Menu state
         if gameState == "menu" {
+            let touchLocation = touch.location(in: self)
+            if let debugBtn = childNode(withName: "debugInfiniteHP") as? SKLabelNode {
+                let btnFrame = CGRect(
+                    x: debugBtn.position.x - 100,
+                    y: debugBtn.position.y - 15,
+                    width: 200,
+                    height: 30
+                )
+                if btnFrame.contains(touchLocation) {
+                    infiniteHP = !infiniteHP
+                    debugBtn.text = infiniteHP ? "INFINITE HP: ON" : "DEBUG: INFINITE HP"
+                    debugBtn.fontColor = infiniteHP ? .green : .red
+                    return
+                }
+            }
             gameState = "playing"
             setupGame()
             return
@@ -637,11 +661,51 @@ class GameScene: SKScene {
                 continue
             }
             
-            // Enemy laser hits paddle - lose HP!
+            // Enemy laser hits paddle - lose HP or bounce
             if enemyLaser.frame.intersects(paddle.frame) {
                 enemyLaser.removeFromParent()
                 enemyLasers.remove(at: i)
                 
+                if infiniteHP {
+                    // Just bounce ball up
+                    ballVelocity.dy = abs(ballVelocity.dy)
+                    ballVelocity.dx += CGFloat.random(in: -30...30)
+                } else {
+                    playerHP -= 1
+                    playPlayerHit()
+                    updatePaddleAppearance()
+                    clearAllLasers()
+                    
+                    // Flash paddle
+                    paddle.alpha = 0.5
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.paddle.alpha = 1.0
+                    }
+                    
+                    if playerHP <= 0 {
+                        gameOver()
+                        return
+                    }
+                }
+                continue
+            }
+        }
+        
+        // Ball falls below paddle - lose HP!
+        if ball.position.y < 0 {
+            if infiniteHP {
+                // Reset ball position only
+                ball.position = CGPoint(x: size.width / 2, y: 140)
+                ballVelocity = .zero
+                isBallActive = false
+                
+                let tapToContinue = SKLabelNode(text: "Tap to Continue")
+                tapToContinue.name = "startLabel"
+                tapToContinue.fontSize = 24
+                tapToContinue.fontColor = .white
+                tapToContinue.position = CGPoint(x: size.width / 2, y: size.height / 2)
+                addChild(tapToContinue)
+            } else {
                 playerHP -= 1
                 playPlayerHit()
                 updatePaddleAppearance()
@@ -655,40 +719,20 @@ class GameScene: SKScene {
                 
                 if playerHP <= 0 {
                     gameOver()
-                    return
+                } else {
+                    // Reset ball position
+                    ball.position = CGPoint(x: size.width / 2, y: 140)
+                    ballVelocity = .zero
+                    isBallActive = false
+                    
+                    // Show tap to continue
+                    let tapToContinue = SKLabelNode(text: "Tap to Continue")
+                    tapToContinue.name = "startLabel"
+                    tapToContinue.fontSize = 24
+                    tapToContinue.fontColor = .white
+                    tapToContinue.position = CGPoint(x: size.width / 2, y: size.height / 2)
+                    addChild(tapToContinue)
                 }
-                continue
-            }
-        }
-        
-        // Ball falls below paddle - lose HP!
-        if ball.position.y < 0 {
-            playerHP -= 1
-            playPlayerHit()
-            updatePaddleAppearance()
-            clearAllLasers()
-            
-            // Flash paddle
-            paddle.alpha = 0.5
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self.paddle.alpha = 1.0
-            }
-            
-            if playerHP <= 0 {
-                gameOver()
-            } else {
-                // Reset ball position
-                ball.position = CGPoint(x: size.width / 2, y: 140)
-                ballVelocity = .zero
-                isBallActive = false
-                
-                // Show tap to continue
-                let tapToContinue = SKLabelNode(text: "Tap to Continue")
-                tapToContinue.name = "startLabel"
-                tapToContinue.fontSize = 24
-                tapToContinue.fontColor = .white
-                tapToContinue.position = CGPoint(x: size.width / 2, y: size.height / 2)
-                addChild(tapToContinue)
             }
         }
     }
