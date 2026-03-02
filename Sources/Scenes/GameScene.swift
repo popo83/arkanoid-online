@@ -181,7 +181,7 @@ class GameScene: SKScene {
         startButton.name = "startButton"
         startButton.fontSize = 28
         startButton.fontColor = .green
-        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 40)
+        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
         addChild(startButton)
         
         // Leaderboard button
