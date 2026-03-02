@@ -143,6 +143,7 @@ class GameScene: SKScene {
     func setupGame() {
         gameState = "playing"
         backgroundColor = SKColor.black
+        level = 1  // Reset level for new game
         
         removeAllChildren()
         lasers.removeAll()

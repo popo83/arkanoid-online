@@ -23,7 +23,6 @@ targets:
         excludes:
           - "*.plist"
           - "*.storyboard"
-          - "*.xcassets"
     settings:
       base:
         INFOPLIST_FILE: Resources/Info.plist

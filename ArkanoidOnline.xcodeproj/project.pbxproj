@@ -10,31 +10,73 @@
 		00210C235C94ACC1BBA3FD3F /* gameover.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */; };
 		061EE7028492229CCDC7295A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D4D97305B21435907E5899 /* AppDelegate.swift */; };
 		07994A23B9DBD33EB1C094DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6833840C761598922CDF56 /* SceneDelegate.swift */; };
+		232026A943C7E631F387ADA9 /* AppIcon-60.png in Resources */ = {isa = PBXBuildFile; fileRef = 93763322E0476ECE7517F278 /* AppIcon-60.png */; };
+		28072DE834A337EA3A7E6B20 /* AppIcon-87.png in Resources */ = {isa = PBXBuildFile; fileRef = F98A204D1A6AFE872AB48F07 /* AppIcon-87.png */; };
+		40F16A71C3A3E82C3CBB62AD /* AppIcon-180.png in Resources */ = {isa = PBXBuildFile; fileRef = F27BFFD8F8BA49F747EC52E6 /* AppIcon-180.png */; };
+		45372CEC55BD3E84AD70F4D6 /* AppIcon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 2C7D73A1EBD743D79362BBF1 /* AppIcon-76.png */; };
+		521E9BC9871D6F53C1C83100 /* AppIcon-167.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CFD3A11BFDE98EC786FCD48 /* AppIcon-167.png */; };
+		5731BECAF628E858245F8D86 /* AppIcon-29.png in Resources */ = {isa = PBXBuildFile; fileRef = 52DA2ABF591D64642C7C83A3 /* AppIcon-29.png */; };
 		5B363DA86AA54B107FDD658A /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDFB595B4E556B1D95B1516 /* GameScene.swift */; };
+		78ADB815053DB984C21EDD26 /* AppIcon-40.png in Resources */ = {isa = PBXBuildFile; fileRef = 3941E06B65309CEC4363343D /* AppIcon-40.png */; };
+		82BC0AA71EA0A201B8ACBC32 /* AppIcon-20.png in Resources */ = {isa = PBXBuildFile; fileRef = AA7799093500160213FFDA3D /* AppIcon-20.png */; };
+		83828F64FF459DDE19B07937 /* AppIcon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = 23DEE23E6F318CB2FA307235 /* AppIcon-120.png */; };
 		8674FD11D79562BDE0024009 /* laserhit.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5AC11ECB51BFAECEA517043D /* laserhit.wav */; };
 		91E033002AD2BEB828817EE9 /* levelup.wav in Resources */ = {isa = PBXBuildFile; fileRef = 450B6609FA01CF625745861B /* levelup.wav */; };
+		9E08C016DFF6998EEEEFEA01 /* AppIcon-58.png in Resources */ = {isa = PBXBuildFile; fileRef = 05D173A02FF9C9D7EE819C6D /* AppIcon-58.png */; };
+		B347CA86745D6E32B0ADE1C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C55D9977441D1EC3DC60C13 /* Assets.xcassets */; };
 		C5D9A715DC83454FD78077A1 /* hurt.wav in Resources */ = {isa = PBXBuildFile; fileRef = 23C8D543894E430CB78438FC /* hurt.wav */; };
 		CAC7B80715A2ADA4BD244A63 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C273487091A8107944EA34EF /* GameViewController.swift */; };
 		CFFC3C50D7CED543165FDEB6 /* hit.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5D2F961EB839730A2AD4E54F /* hit.wav */; };
+		E2BE868BB0E5DF3E63A46C2E /* AppIcon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 8FBFB7B5AE727110587EF898 /* AppIcon-152.png */; };
+		E3E1C9F5B84C4A0550ACA5B0 /* AppIcon-80.png in Resources */ = {isa = PBXBuildFile; fileRef = 666EC3B5242A267978B8CE41 /* AppIcon-80.png */; };
+		FB7CF9EC826E251501472916 /* AppIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 2EBDC07A0CC6FD6E78DB25B5 /* AppIcon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05D173A02FF9C9D7EE819C6D /* AppIcon-58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-58.png"; sourceTree = "<group>"; };
 		0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gameover.wav; sourceTree = "<group>"; };
 		0DDFB595B4E556B1D95B1516 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		0E6833840C761598922CDF56 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		16D4D97305B21435907E5899 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1C55D9977441D1EC3DC60C13 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		23C8D543894E430CB78438FC /* hurt.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hurt.wav; sourceTree = "<group>"; };
+		23DEE23E6F318CB2FA307235 /* AppIcon-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-120.png"; sourceTree = "<group>"; };
+		2C7D73A1EBD743D79362BBF1 /* AppIcon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-76.png"; sourceTree = "<group>"; };
+		2EBDC07A0CC6FD6E78DB25B5 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
+		3941E06B65309CEC4363343D /* AppIcon-40.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-40.png"; sourceTree = "<group>"; };
 		450B6609FA01CF625745861B /* levelup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = levelup.wav; sourceTree = "<group>"; };
+		4CFD3A11BFDE98EC786FCD48 /* AppIcon-167.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-167.png"; sourceTree = "<group>"; };
+		52DA2ABF591D64642C7C83A3 /* AppIcon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29.png"; sourceTree = "<group>"; };
 		5AC11ECB51BFAECEA517043D /* laserhit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = laserhit.wav; sourceTree = "<group>"; };
 		5D2F961EB839730A2AD4E54F /* hit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hit.wav; sourceTree = "<group>"; };
+		666EC3B5242A267978B8CE41 /* AppIcon-80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-80.png"; sourceTree = "<group>"; };
+		8FBFB7B5AE727110587EF898 /* AppIcon-152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-152.png"; sourceTree = "<group>"; };
 		90DBCB15410B15EB3C986E4B /* ArkanoidOnline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArkanoidOnline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		93763322E0476ECE7517F278 /* AppIcon-60.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-60.png"; sourceTree = "<group>"; };
+		AA7799093500160213FFDA3D /* AppIcon-20.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-20.png"; sourceTree = "<group>"; };
 		C273487091A8107944EA34EF /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
+		F27BFFD8F8BA49F747EC52E6 /* AppIcon-180.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-180.png"; sourceTree = "<group>"; };
+		F98A204D1A6AFE872AB48F07 /* AppIcon-87.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-87.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		52A5F6F3FC43166ED5E21F34 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AA7799093500160213FFDA3D /* AppIcon-20.png */,
+				52DA2ABF591D64642C7C83A3 /* AppIcon-29.png */,
+				3941E06B65309CEC4363343D /* AppIcon-40.png */,
+				05D173A02FF9C9D7EE819C6D /* AppIcon-58.png */,
+				93763322E0476ECE7517F278 /* AppIcon-60.png */,
+				2C7D73A1EBD743D79362BBF1 /* AppIcon-76.png */,
+				666EC3B5242A267978B8CE41 /* AppIcon-80.png */,
+				F98A204D1A6AFE872AB48F07 /* AppIcon-87.png */,
+				23DEE23E6F318CB2FA307235 /* AppIcon-120.png */,
+				8FBFB7B5AE727110587EF898 /* AppIcon-152.png */,
+				4CFD3A11BFDE98EC786FCD48 /* AppIcon-167.png */,
+				F27BFFD8F8BA49F747EC52E6 /* AppIcon-180.png */,
+				2EBDC07A0CC6FD6E78DB25B5 /* AppIcon.png */,
+				1C55D9977441D1EC3DC60C13 /* Assets.xcassets */,
 				0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */,
 				5D2F961EB839730A2AD4E54F /* hit.wav */,
 				23C8D543894E430CB78438FC /* hurt.wav */,
@@ -138,6 +180,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83828F64FF459DDE19B07937 /* AppIcon-120.png in Resources */,
+				E2BE868BB0E5DF3E63A46C2E /* AppIcon-152.png in Resources */,
+				521E9BC9871D6F53C1C83100 /* AppIcon-167.png in Resources */,
+				40F16A71C3A3E82C3CBB62AD /* AppIcon-180.png in Resources */,
+				82BC0AA71EA0A201B8ACBC32 /* AppIcon-20.png in Resources */,
+				5731BECAF628E858245F8D86 /* AppIcon-29.png in Resources */,
+				78ADB815053DB984C21EDD26 /* AppIcon-40.png in Resources */,
+				9E08C016DFF6998EEEEFEA01 /* AppIcon-58.png in Resources */,
+				232026A943C7E631F387ADA9 /* AppIcon-60.png in Resources */,
+				45372CEC55BD3E84AD70F4D6 /* AppIcon-76.png in Resources */,
+				E3E1C9F5B84C4A0550ACA5B0 /* AppIcon-80.png in Resources */,
+				28072DE834A337EA3A7E6B20 /* AppIcon-87.png in Resources */,
+				FB7CF9EC826E251501472916 /* AppIcon.png in Resources */,
+				B347CA86745D6E32B0ADE1C6 /* Assets.xcassets in Resources */,
 				00210C235C94ACC1BBA3FD3F /* gameover.wav in Resources */,
 				CFFC3C50D7CED543165FDEB6 /* hit.wav in Resources */,
 				C5D9A715DC83454FD78077A1 /* hurt.wav in Resources */,
