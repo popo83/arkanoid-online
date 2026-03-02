@@ -36,6 +36,7 @@ class GameScene: SKScene {
     let ballRadius: CGFloat = 10
     let laserSpeed: CGFloat = 500
     let shootCooldown: TimeInterval = 0.25
+    let maxBallSpeed: CGFloat = 800
     
     // MARK: - Sound Effects
     var shootSound: SKAction!
@@ -200,9 +201,9 @@ class GameScene: SKScene {
     
     func setupScoreLabel() {
         scoreLabel = SKLabelNode(text: "Lv.\(level) | Score: \(score)")
-        scoreLabel.fontSize = 18
+        scoreLabel.fontSize = 16
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 15, y: size.height - 30)
+        scoreLabel.position = CGPoint(x: 15, y: 70) // Bottom left, below paddle
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
     }
@@ -284,6 +285,27 @@ class GameScene: SKScene {
         ballVelocity = CGVector(dx: cos(angle) * speed, dy: abs(sin(angle)) * speed)
     }
     
+    func clampBallSpeed() {
+        let speed = sqrt(ballVelocity.dx * ballVelocity.dx + ballVelocity.dy * ballVelocity.dy)
+        if speed > maxBallSpeed {
+            let scale = maxBallSpeed / speed
+            ballVelocity.dx *= scale
+            ballVelocity.dy *= scale
+        }
+    }
+    
+    func clearAllLasers() {
+        for laser in lasers {
+            laser.removeFromParent()
+        }
+        lasers.removeAll()
+        
+        for enemyLaser in enemyLasers {
+            enemyLaser.removeFromParent()
+        }
+        enemyLasers.removeAll()
+    }
+    
     // MARK: - Boss AI
     
     func updateBossAI() {
@@ -352,6 +374,17 @@ class GameScene: SKScene {
         if ball.position.x + ballRadius > size.width {
             ball.position.x = size.width - ballRadius
             ballVelocity.dx = -abs(ballVelocity.dx)
+        }
+        
+        // Prevent ball from bouncing too horizontally
+        let minVerticalSpeed: CGFloat = 150
+        if abs(ballVelocity.dy) < minVerticalSpeed {
+            // Force minimum vertical velocity in current direction
+            if ballVelocity.dy >= 0 {
+                ballVelocity.dy = minVerticalSpeed
+            } else {
+                ballVelocity.dy = -minVerticalSpeed
+            }
         }
         
         // Ball passes boss - YOU WIN!
@@ -442,13 +475,16 @@ class GameScene: SKScene {
                 continue
             }
             
-            // Enemy laser - hits ball from below and boosts it up!
+            // Enemy laser - hits ball from below and sends it DOWN faster!
             if enemyLaser.frame.intersects(ball.frame) {
+                playLaserHit()
                 enemyLaser.removeFromParent()
                 enemyLasers.remove(at: i)
-                // Boost ball upward
-                ballVelocity.dy = abs(ballVelocity.dy) * 1.3
-                ballVelocity.dx += CGFloat.random(in: -20...20)
+                // Send ball DOWN with increased speed
+                let speedBoost: CGFloat = 1.5
+                ballVelocity.dy = -abs(ballVelocity.dy) * speedBoost
+                ballVelocity.dx = ballVelocity.dx * speedBoost
+                clampBallSpeed()
                 continue
             }
             
@@ -460,6 +496,7 @@ class GameScene: SKScene {
                 playerHP -= 1
                 playPlayerHit()
                 updatePaddleAppearance()
+                clearAllLasers()
                 
                 // Flash paddle
                 paddle.alpha = 0.5
@@ -480,6 +517,7 @@ class GameScene: SKScene {
             playerHP -= 1
             playPlayerHit()
             updatePaddleAppearance()
+            clearAllLasers()
             
             // Flash paddle
             paddle.alpha = 0.5
