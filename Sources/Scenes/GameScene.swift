@@ -484,24 +484,25 @@ class GameScene: SKScene {
     
     func createExplosion(at position: CGPoint) {
         let emitter = SKEmitterNode()
-        emitter.particleBirthRate = 50
-        emitter.numParticlesToEmit = 20
-        emitter.particleLifetime = 0.5
+        emitter.particleBirthRate = 100
+        emitter.numParticlesToEmit = 30
+        emitter.particleLifetime = 0.8
         emitter.particleLifetimeRange = 0.3
-        emitter.particleSpeed = 100
-        emitter.particleSpeedRange = 50
+        emitter.particleSpeed = 150
+        emitter.particleSpeedRange = 80
         emitter.particleAlpha = 1.0
-        emitter.particleAlphaRange = 0.5
+        emitter.particleAlphaRange = 0.3
         emitter.particleAlphaSpeed = -1.0
-        emitter.particleScale = 0.3
-        emitter.particleScaleRange = 0.2
-        emitter.particleScaleSpeed = -0.3
-        emitter.particleColor = .red
+        emitter.particleScale = 0.5
+        emitter.particleScaleRange = 0.3
+        emitter.particleScaleSpeed = -0.4
+        emitter.particleColor = .yellow
         emitter.particleColorBlendFactor = 1.0
+        emitter.particleBlendMode = .add
         emitter.position = position
         emitter.targetNode = self
         addChild(emitter)
-        let wait = SKAction.wait(forDuration: 1.0)
+        let wait = SKAction.wait(forDuration: 1.5)
         let remove = SKAction.removeFromParent()
         emitter.run(SKAction.sequence([wait, remove]))
     }
