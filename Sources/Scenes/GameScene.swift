@@ -104,7 +104,7 @@ class GameScene: SKScene {
         removeAllChildren()
         
         // Title
-        let titleLabel = SKLabelNode(text: "AInoid")
+        let titleLabel = SKLabelNode(text: "4IN01D")
         titleLabel.fontSize = 48
         titleLabel.fontColor = .cyan
         titleLabel.position = CGPoint(x: size.width / 2, y: size.height - 120)
