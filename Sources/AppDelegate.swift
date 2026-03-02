@@ -10,20 +10,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window = UIWindow(frame: UIScreen.main.bounds)
         
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .black
+        let gameViewController = GameViewController()
         
-        let skView = SKView(frame: window!.bounds)
-        skView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
-        let gameScene = GameScene(size: skView.bounds.size)
-        gameScene.scaleMode = .aspectFill
-        
-        skView.presentScene(gameScene)
-        
-        viewController.view.addSubview(skView)
-        
-        window?.rootViewController = viewController
+        window?.rootViewController = gameViewController
         window?.makeKeyAndVisible()
         
         return true
