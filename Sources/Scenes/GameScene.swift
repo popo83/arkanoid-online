@@ -3,6 +3,9 @@ import AVFoundation
 
 class GameScene: SKScene {
     
+    // Reference to view controller for Game Center
+    weak var viewController: GameViewController?
+    
     // MARK: - Game Objects
     var paddle: SKSpriteNode!
     var ball: SKSpriteNode!
@@ -178,8 +181,16 @@ class GameScene: SKScene {
         startButton.name = "startButton"
         startButton.fontSize = 28
         startButton.fontColor = .green
-        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 40)
         addChild(startButton)
+        
+        // Leaderboard button
+        let leaderboardButton = SKLabelNode(text: "🏆 LEADERBOARD")
+        leaderboardButton.name = "leaderboardButton"
+        leaderboardButton.fontSize = 18
+        leaderboardButton.fontColor = .yellow
+        leaderboardButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 90)
+        addChild(leaderboardButton)
         
         // DEBUG: Infinite HP Button (bottom center)
         let debugButton = SKLabelNode(text: "DEBUG: INFINITE HP")
@@ -381,6 +392,21 @@ class GameScene: SKScene {
         // Menu state
         if gameState == "menu" {
             let touchLocation = touch.location(in: self)
+            
+            // Check leaderboard button
+            if let lbBtn = childNode(withName: "leaderboardButton") as? SKLabelNode {
+                let lbFrame = CGRect(
+                    x: lbBtn.position.x - 80,
+                    y: lbBtn.position.y - 15,
+                    width: 160,
+                    height: 30
+                )
+                if lbFrame.contains(touchLocation) {
+                    viewController?.showLeaderboard()
+                    return
+                }
+            }
+            
             if let debugBtn = childNode(withName: "debugInfiniteHP") as? SKLabelNode {
                 let btnFrame = CGRect(
                     x: debugBtn.position.x - 100,
@@ -840,6 +866,11 @@ class GameScene: SKScene {
     }
     
     func winGame() {
+        // Submit score to Game Center
+        if !infiniteHP {
+            viewController?.submitScoreToLeaderboard(score)
+        }
+        
         // Check if level 10 completed - GAME WON!
         if level >= 10 {
             showCredits()
@@ -961,6 +992,11 @@ class GameScene: SKScene {
         isBallActive = false
         isGameOver = true
         gameState = "gameover"
+        
+        // Submit score to Game Center
+        if !infiniteHP {
+            viewController?.submitScoreToLeaderboard(score)
+        }
         
         // Stop background music
         stopBackgroundMusic()
