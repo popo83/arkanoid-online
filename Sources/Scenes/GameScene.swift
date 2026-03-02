@@ -602,9 +602,9 @@ class GameScene: SKScene {
         // Auto shoot lasers - FASTER when low HP!
         let fireInterval: TimeInterval
         switch playerHP {
-        case 3: fireInterval = 0.5  // Normal
-        case 2: fireInterval = 0.3  // Faster
-        default: fireInterval = 0.15  // Maximum speed!
+        case 3: fireInterval = 0.3  // Normal
+        case 2: fireInterval = 0.2  // Faster
+        default: fireInterval = 0.1  // Maximum speed!
         }
         
         if currentTime - lastPlayerShotTime > fireInterval {
