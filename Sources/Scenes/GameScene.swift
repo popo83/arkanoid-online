@@ -131,16 +131,16 @@ class GameScene: SKScene {
         startButton.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(startButton)
         
-        // DEBUG: Infinite HP Button
+        // DEBUG: Infinite HP Button (bottom center)
         let debugButton = SKLabelNode(text: "DEBUG: INFINITE HP")
         debugButton.name = "debugInfiniteHP"
         debugButton.fontSize = 14
         debugButton.fontColor = .red
-        debugButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        debugButton.position = CGPoint(x: size.width / 2, y: 50)
         addChild(debugButton)
         
         // Instructions
-        let instrLabel = SKLabelNode(text: "Tap to shoot | Dodge enemy lasers")
+        let instrLabel = SKLabelNode(text: "Developed by J4K08")
         instrLabel.fontSize = 14
         instrLabel.fontColor = .gray
         instrLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
@@ -186,10 +186,10 @@ class GameScene: SKScene {
         // Boss starts with 10 HP, +5 per level
         maxBossHP = 10 + (level - 1) * 10  // +10 HP per level
         bossHP = maxBossHP
-        bossSpeed = 350 + CGFloat(level - 1) * 120  // +120 speed per level (was 100)
-        enemyShootInterval = 0.7 - Double(level - 1) * 0.07  // -0.07s per level (was 0.08)
-        if enemyShootInterval < 0.06 { enemyShootInterval = 0.06 }  // min 0.06s! (was 0.08)
-        enemyLaserSpeed = 500 + CGFloat(level - 1) * 120  // +120 speed per level (was 100)
+        bossSpeed = 250 + CGFloat(level - 1) * 80  // Reduced from 120
+        enemyShootInterval = 0.8 - Double(level - 1) * 0.05  // Reduced from 0.07
+        if enemyShootInterval < 0.10 { enemyShootInterval = 0.10 }  // Higher min (was 0.06)
+        enemyLaserSpeed = 350 + CGFloat(level - 1) * 80  // Reduced from 120
     }
     
     func setupPaddle() {
@@ -254,30 +254,41 @@ class GameScene: SKScene {
         scoreLabel = SKLabelNode(text: "Lv.\(level) | Score: \(score)")
         scoreLabel.fontSize = 16
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 15, y: 70) // Bottom left, below paddle
+        scoreLabel.position = CGPoint(x: 15, y: size.height - 30)  // Top left
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
         
-        // DEBUG PANEL - Show difficulty + AI values in CENTER
-        let aiLevel = level
-        let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
-        let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
-        let debugText = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
-        let debugLabel = SKLabelNode(text: debugText)
-        debugLabel.name = "debugLabel"
-        debugLabel.fontSize = 20
-        debugLabel.fontColor = .yellow
-        debugLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 40)
-        addChild(debugLabel)
+        // Boss HP Label
+        let bossHPLabel = SKLabelNode(text: "Boss: \(bossHP)/\(maxBossHP)")
+        bossHPLabel.name = "bossHPLabel"
+        bossHPLabel.fontSize = 16
+        bossHPLabel.fontColor = .red
+        bossHPLabel.position = CGPoint(x: 15, y: size.height - 55)  // Below score
+        bossHPLabel.horizontalAlignmentMode = .left
+        addChild(bossHPLabel)
         
-        // AI DEBUG PANEL
-        let aiText = "AI ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% L:\(aiLevel)"
-        let aiLabel = SKLabelNode(text: aiText)
-        aiLabel.name = "aiLabel"
-        aiLabel.fontSize = 18
-        aiLabel.fontColor = .cyan
-        aiLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
-        addChild(aiLabel)
+        // DEBUG PANEL - Only show when infiniteHP is ON
+        if infiniteHP {
+            let aiLevel = level
+            let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
+            let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
+            let debugText = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
+            let debugLabel = SKLabelNode(text: debugText)
+            debugLabel.name = "debugLabel"
+            debugLabel.fontSize = 20
+            debugLabel.fontColor = .yellow
+            debugLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 40)
+            addChild(debugLabel)
+            
+            // AI DEBUG PANEL
+            let aiText = "AI ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% L:\(aiLevel)"
+            let aiLabel = SKLabelNode(text: aiText)
+            aiLabel.name = "aiLabel"
+            aiLabel.fontSize = 18
+            aiLabel.fontColor = .cyan
+            aiLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
+            addChild(aiLabel)
+        }
     }
     
     // MARK: - Shooting
@@ -508,15 +519,17 @@ class GameScene: SKScene {
     }
     
     override func update(_ currentTime: TimeInterval) {
-        // Update debug panels
-        let aiLevel = level
-        let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
-        let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
-        if let debug = childNode(withName: "debugLabel") as? SKLabelNode {
-            debug.text = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
-        }
-        if let aiLabel = childNode(withName: "aiLabel") as? SKLabelNode {
-            aiLabel.text = "AI ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% L:\(aiLevel)"
+        // Update debug panels (only when infiniteHP is ON)
+        if infiniteHP {
+            let aiLevel = level
+            let aiAccuracy = 0.90 + Double(aiLevel) * 0.01
+            let mistakeChance = max(0.30 - (Double(aiLevel) - 1) * 0.05, 0.02)
+            if let debug = childNode(withName: "debugLabel") as? SKLabelNode {
+                debug.text = "LV:\(level) HP:\(bossHP) BS:\(Int(bossSpeed))\nFR:\(String(format: "%.2f", enemyShootInterval)) LS:\(Int(enemyLaserSpeed))"
+            }
+            if let aiLabel = childNode(withName: "aiLabel") as? SKLabelNode {
+                aiLabel.text = "AI ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% L:\(aiLevel)"
+            }
         }
         
         guard isBallActive, !isGameOver else { return }
@@ -612,6 +625,9 @@ class GameScene: SKScene {
                 lasers.remove(at: i)
                 bossHP -= 1
                 updateBossAppearance()
+                if let bossHPLabel = childNode(withName: "bossHPLabel") as? SKLabelNode {
+                    bossHPLabel.text = "Boss: \(bossHP)/\(maxBossHP)"
+                }
                 score += 10
                 scoreLabel.text = "Lv.\(level) | Score: \(score)"
                 
