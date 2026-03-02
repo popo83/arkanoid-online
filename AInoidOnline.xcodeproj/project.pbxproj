@@ -23,6 +23,7 @@
 		822FCFA2DA63F170A547A1DF /* levelup.wav in Resources */ = {isa = PBXBuildFile; fileRef = DCF8C402FF021D0F7CA6F971 /* levelup.wav */; };
 		A54A5AFDD5E0B7BE7ED35400 /* AppIcon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 245F261F3520A509F5261112 /* AppIcon-152.png */; };
 		A66516C9F974A74D92DC4B83 /* AppIcon-80.png in Resources */ = {isa = PBXBuildFile; fileRef = 20E657036D09FE0925BBF9AE /* AppIcon-80.png */; };
+		AE65FAE7B44B6A8E1948A75D /* music.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2255E0A4E59A62D43EDA53B2 /* music.wav */; };
 		CCDC4D8EED87DA29526E93FF /* AppIcon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = FF8C26F75E8360397D4E85F7 /* AppIcon-120.png */; };
 		CE68C1A4422995411A554D8E /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52ED4C65197A16FA13345941 /* GameScene.swift */; };
 		CFEDF9DAF71C542630ED4671 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BB95D2A12B460A29D6E733 /* GameViewController.swift */; };
@@ -36,6 +37,7 @@
 		032750342BDC63DE289CC919 /* laserhit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = laserhit.wav; sourceTree = "<group>"; };
 		0F850241037C4E39033555EF /* AppIcon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29.png"; sourceTree = "<group>"; };
 		20E657036D09FE0925BBF9AE /* AppIcon-80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-80.png"; sourceTree = "<group>"; };
+		2255E0A4E59A62D43EDA53B2 /* music.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = music.wav; sourceTree = "<group>"; };
 		245F261F3520A509F5261112 /* AppIcon-152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-152.png"; sourceTree = "<group>"; };
 		30F6ED74ECF33DE81C9764D6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3C447FC7DF7CD2C4D1DD56E1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				DC715935A95D366B28036A1A /* hurt.wav */,
 				032750342BDC63DE289CC919 /* laserhit.wav */,
 				DCF8C402FF021D0F7CA6F971 /* levelup.wav */,
+				2255E0A4E59A62D43EDA53B2 /* music.wav */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 				E7A5317B0B9B7668B9522737 /* hurt.wav in Resources */,
 				FB1C7282120FDB40B9A7B393 /* laserhit.wav in Resources */,
 				822FCFA2DA63F170A547A1DF /* levelup.wav in Resources */,
+				AE65FAE7B44B6A8E1948A75D /* music.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

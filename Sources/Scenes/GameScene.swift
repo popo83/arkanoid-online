@@ -1,4 +1,5 @@
 import SpriteKit
+import AVFoundation
 
 class GameScene: SKScene {
     
@@ -15,6 +16,8 @@ class GameScene: SKScene {
     var isGameOver = false
     var score = 0
     var highScore = 0
+    var totalPlayTime: TimeInterval = 0
+    var gameStartTime: TimeInterval = 0
     var scoreLabel: SKLabelNode!
     var canShoot = true
     var bossSpeed: CGFloat = 250
@@ -25,6 +28,7 @@ class GameScene: SKScene {
     var level = 1
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
+    var backgroundMusic: AVAudioPlayer?
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
     let playerShootInterval: TimeInterval = 0.4
@@ -63,6 +67,13 @@ class GameScene: SKScene {
         run(shootSound)
     }
     
+    func playBackgroundMusic() {
+        // Play music loop using wav (better compatibility)
+        let playMusic = SKAction.playSoundFileNamed("music.wav", waitForCompletion: true)
+        let repeatForever = SKAction.repeatForever(playMusic)
+        run(repeatForever, withKey: "bgmusic")
+    }
+    
     func playHitBoss() {
         run(hitBossSound)
     }
@@ -95,13 +106,25 @@ class GameScene: SKScene {
         view.showsNodeCount = false
         // Load high score
         highScore = UserDefaults.standard.integer(forKey: "highScore")
+        // Load total play time
+        totalPlayTime = UserDefaults.standard.double(forKey: "totalPlayTime")
         showMenu()
     }
     
     func showMenu() {
         gameState = "menu"
         backgroundColor = SKColor.black
+        // Save play time
+        if gameStartTime > 0 {
+            let played = Date().timeIntervalSince1970 - gameStartTime
+            totalPlayTime += played
+            UserDefaults.standard.set(totalPlayTime, forKey: "totalPlayTime")
+            gameStartTime = 0
+        }
         removeAllChildren()
+        
+        // Start background music
+        playBackgroundMusic()
         
         // Title
         let titleLabel = SKLabelNode(text: "4IN01D")
@@ -122,6 +145,16 @@ class GameScene: SKScene {
         hsLabel.fontColor = .yellow
         hsLabel.position = CGPoint(x: size.width / 2, y: size.height - 220)
         addChild(hsLabel)
+        
+        // Play time
+        let hours = Int(totalPlayTime) / 3600
+        let minutes = (Int(totalPlayTime) % 3600) / 60
+        let timeText = hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+        let timeLabel = SKLabelNode(text: "Play Time: \(timeText)")
+        timeLabel.fontSize = 16
+        timeLabel.fontColor = .gray
+        timeLabel.position = CGPoint(x: size.width / 2, y: size.height - 250)
+        addChild(timeLabel)
         
         // Start Button
         let startButton = SKLabelNode(text: "TAP TO START")
@@ -151,6 +184,8 @@ class GameScene: SKScene {
     
     func setupGame() {
         gameState = "playing"
+        // Start play timer
+        gameStartTime = Date().timeIntervalSince1970
         backgroundColor = SKColor.black
         // Level stays the same on level up! (handled in touchesBegan)
         
@@ -369,6 +404,15 @@ class GameScene: SKScene {
                 playerHP = 3
                 showMenu()
             }
+            return
+        }
+        
+        // If game over (including credits), tap to restart
+        if gameState == "gameover" {
+            level = 1
+            score = 0
+            playerHP = 3
+            showMenu()
             return
         }
         
@@ -755,6 +799,12 @@ class GameScene: SKScene {
     }
     
     func winGame() {
+        // Check if level 10 completed - GAME WON!
+        if level >= 10 {
+            showCredits()
+            return
+        }
+        
         isBallActive = false
         isGameOver = true
         
@@ -763,15 +813,95 @@ class GameScene: SKScene {
         let levelUpLabel = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
         levelUpLabel.fontSize = 36
         levelUpLabel.fontColor = .green
-        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 30)
+        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
         addChild(levelUpLabel)
         
-        let nextLabel = SKLabelNode(text: "Tap for Level \(level + 1)")
-        nextLabel.fontSize = 20
+        // Sci-fi warning messages per level
+        let sciFiWarnings = [
+            "⚠️ SYSTEM: Boss upgraded",
+            "🔧 AI: Neural network expanded",
+            "🧠 WARNING: Boss adapting",
+            "💀 DANGER: Enemy evolving",
+            "⚡ POWER: Boss speed up",
+            "🤖 ALERT: AI learning fast",
+            "🔥 HAZARD: Maximum difficulty",
+            "🛡️ CRITICAL: Defense mode",
+            "☠️ WARNING: Boss rage mode",
+            "👑 FINAL FORM: Good luck!"
+        ]
+        
+        let nextLvl = level + 1
+        let warningIndex = min(nextLvl - 1, sciFiWarnings.count - 1)
+        let warning = sciFiWarnings[warningIndex]
+        
+        let warningLabel = SKLabelNode(text: warning)
+        warningLabel.fontSize = 14
+        warningLabel.fontColor = .yellow
+        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 10)
+        addChild(warningLabel)
+        
+        // Next level info
+        let hpText = "HP: \(min(10 + (nextLvl - 1) * 5, 50))"
+        let nextLabel = SKLabelNode(text: "Tap for \(hpText)")
+        nextLabel.fontSize = 18
         nextLabel.fontColor = .white
-        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
+        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 25)
         nextLabel.name = "nextLevel"
         addChild(nextLabel)
+    }
+    
+    func showCredits() {
+        isBallActive = false
+        isGameOver = true
+        gameState = "gameover"
+        
+        // Save high score
+        if score > highScore && !infiniteHP {
+            highScore = score
+            UserDefaults.standard.set(highScore, forKey: "highScore")
+        }
+        
+        playLevelUp()
+        
+        // Clear screen
+        removeAllChildren()
+        
+        // Dark background
+        backgroundColor = SKColor.black
+        
+        // Title
+        let titleLabel = SKLabelNode(text: "🏆 YOU WIN! 🏆")
+        titleLabel.fontSize = 40
+        titleLabel.fontColor = .yellow
+        titleLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.8)
+        addChild(titleLabel)
+        
+        // Credits
+        let credits = [
+            "",
+            "4IN01D",
+            "",
+            "A Game by J4K08",
+            "",
+            "Built with Swift",
+            "SpriteKit Engine",
+            "",
+            "Music: 8-bit Retro",
+            "",
+            "Thanks for Playing!",
+            "",
+            "Tap to Restart"
+        ]
+        
+        var yPos = size.height * 0.6
+        for credit in credits {
+            let label = SKLabelNode(text: credit)
+            label.fontSize = (credit.isEmpty || credit == "Tap to Restart") ? 16 : 20
+            label.fontColor = credit.contains("🏆") ? .yellow : .white
+            label.position = CGPoint(x: size.width / 2, y: yPos)
+            addChild(label)
+            yPos -= 35
+        }
     }
     
     func gameOver() {
