@@ -24,6 +24,7 @@ class GameViewController: UIViewController, GKGameCenterControllerDelegate {
         skView.ignoresSiblingOrder = true
         skView.showsFPS = false
         skView.showsNodeCount = false
+        skView.preferredFramesPerSecond = 60  // Support up to 60/120 FPS
         
         // Create scene with screen size
         let screenWidth = UIScreen.main.bounds.width
