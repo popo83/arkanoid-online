@@ -67,11 +67,16 @@ class GameScene: SKScene {
         run(shootSound)
     }
     
+    var musicAction: SKAction?
+    
     func playBackgroundMusic() {
-        // Play music loop using wav (better compatibility)
+        // Remove all actions to be sure
+        removeAllActions()
+        
+        // Play music loop using wav
         let playMusic = SKAction.playSoundFileNamed("music.wav", waitForCompletion: true)
-        let repeatForever = SKAction.repeatForever(playMusic)
-        run(repeatForever, withKey: "bgmusic")
+        musicAction = SKAction.repeatForever(playMusic)
+        run(musicAction!, withKey: "bgmusic")
     }
     
     func playHitBoss() {
@@ -837,15 +842,27 @@ class GameScene: SKScene {
         let warningLabel = SKLabelNode(text: warning)
         warningLabel.fontSize = 14
         warningLabel.fontColor = .yellow
-        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 10)
+        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 40)
         addChild(warningLabel)
         
-        // Next level info
-        let hpText = "HP: \(min(10 + (nextLvl - 1) * 5, 50))"
+        // Real AI stats for next level
+        let aiAccuracy = 0.90 + Double(nextLvl) * 0.01
+        let mistakeChance = max(0.30 - (Double(nextLvl) - 1) * 0.05, 0.02)
+        let bossSpeedLvl = 250 + (nextLvl - 1) * 80
+        let bossHPLvl = min(10 + (nextLvl - 1) * 5, 50)
+        
+        let aiStatsLabel = SKLabelNode(text: "ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% | SPD:\(bossSpeedLvl)")
+        aiStatsLabel.fontSize = 12
+        aiStatsLabel.fontColor = .cyan
+        aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 20)
+        addChild(aiStatsLabel)
+        
+        // HP info
+        let hpText = "Boss HP: \(bossHPLvl)"
         let nextLabel = SKLabelNode(text: "Tap for \(hpText)")
         nextLabel.fontSize = 18
         nextLabel.fontColor = .white
-        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 25)
+        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 15)
         nextLabel.name = "nextLevel"
         addChild(nextLabel)
     }
@@ -908,6 +925,9 @@ class GameScene: SKScene {
         isBallActive = false
         isGameOver = true
         gameState = "gameover"
+        
+        // Stop background music
+        removeAction(forKey: "bgmusic")
         
         // Save high score (only if not in infinite HP mode)
         if score > highScore && !infiniteHP {
