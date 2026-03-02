@@ -68,8 +68,14 @@ class GameScene: SKScene {
     }
     
     var musicAction: SKAction?
+    var isMusicPlaying = false
     
     func playBackgroundMusic() {
+        // If music is already playing, don't start again
+        if isMusicPlaying {
+            return
+        }
+        
         // Remove all actions to be sure
         removeAllActions()
         
@@ -77,6 +83,12 @@ class GameScene: SKScene {
         let playMusic = SKAction.playSoundFileNamed("music.wav", waitForCompletion: true)
         musicAction = SKAction.repeatForever(playMusic)
         run(musicAction!, withKey: "bgmusic")
+        isMusicPlaying = true
+    }
+    
+    func stopBackgroundMusic() {
+        removeAllActions()
+        isMusicPlaying = false
     }
     
     func playHitBoss() {
@@ -927,7 +939,7 @@ class GameScene: SKScene {
         gameState = "gameover"
         
         // Stop background music
-        removeAction(forKey: "bgmusic")
+        stopBackgroundMusic()
         
         // Save high score (only if not in infinite HP mode)
         if score > highScore && !infiniteHP {
