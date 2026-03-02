@@ -975,7 +975,7 @@ class GameScene: SKScene {
         let warning = sciFiWarnings[warningIndex]
         
         let warningLabel = SKLabelNode(text: warning)
-        warningLabel.fontSize = 14
+        warningLabel.fontSize = 22
         warningLabel.fontColor = .yellow
         warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 55)
         addChild(warningLabel)
@@ -987,7 +987,7 @@ class GameScene: SKScene {
         let bossHPLvl = min(10 + (nextLvl - 1) * 5, 50)
         
         let aiStatsLabel = SKLabelNode(text: "ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% | SPD:\(bossSpeedLvl)")
-        aiStatsLabel.fontSize = 12
+        aiStatsLabel.fontSize = 18
         aiStatsLabel.fontColor = .cyan
         aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 35)
         addChild(aiStatsLabel)
