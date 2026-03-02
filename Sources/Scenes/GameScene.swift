@@ -174,18 +174,13 @@ class GameScene: SKScene {
     }
     
     func setupLevelParameters() {
-        // Level 1: HP=10, speed=250, fire=0.6s, laser=350
-        // Level 2: HP=15, speed=300, fire=0.5s, laser=400
-        // Level 3: HP=20, speed=350, fire=0.4s, laser=450
-        // Level 4: HP=25, speed=400, fire=0.3s, laser=500
-        // Level 5+: HP+=5, speed+=50, fire-0.05s, laser+=50
-        
-        maxBossHP = 10 + (level - 1) * 5
+        // Boss starts with 5 HP, +5 per level
+        maxBossHP = 5 + (level - 1) * 5
         bossHP = maxBossHP
-        bossSpeed = 250 + CGFloat(level - 1) * 50
-        enemyShootInterval = 0.6 - Double(level - 1) * 0.1
-        if enemyShootInterval < 0.2 { enemyShootInterval = 0.2 }
-        enemyLaserSpeed = 350 + CGFloat(level - 1) * 50
+        bossSpeed = 300 + CGFloat(level - 1) * 100  // +100 speed per level
+        enemyShootInterval = 0.8 - Double(level - 1) * 0.08  // -0.08s per level
+        if enemyShootInterval < 0.08 { enemyShootInterval = 0.08 }  // min 0.08s!
+        enemyLaserSpeed = 450 + CGFloat(level - 1) * 100  // +100 speed per level
     }
     
     func setupPaddle() {
@@ -300,11 +295,14 @@ class GameScene: SKScene {
             if childNode(withName: "nextLevel") != nil {
                 // Level up!
                 let savedScore = score
+                let savedPlayerHP = playerHP
                 level += 1
                 let currentLevel = level
                 setupGame()
                 level = currentLevel
                 score = savedScore
+                playerHP = savedPlayerHP
+                updatePaddleAppearance()
                 scoreLabel.text = "Lv.\(level) | Score: \(score)"
             } else {
                 // Go to menu
@@ -362,40 +360,96 @@ class GameScene: SKScene {
         enemyLasers.removeAll()
     }
     
+    func createExplosion(at position: CGPoint) {
+        let emitter = SKEmitterNode()
+        emitter.particleBirthRate = 50
+        emitter.numParticlesToEmit = 20
+        emitter.particleLifetime = 0.5
+        emitter.particleLifetimeRange = 0.3
+        emitter.particleSpeed = 100
+        emitter.particleSpeedRange = 50
+        emitter.particleAlpha = 1.0
+        emitter.particleAlphaRange = 0.5
+        emitter.particleAlphaSpeed = -1.0
+        emitter.particleScale = 0.3
+        emitter.particleScaleRange = 0.2
+        emitter.particleScaleSpeed = -0.3
+        emitter.particleColor = .red
+        emitter.particleColorBlendFactor = 1.0
+        emitter.position = position
+        emitter.targetNode = self
+        addChild(emitter)
+        let wait = SKAction.wait(forDuration: 1.0)
+        let remove = SKAction.removeFromParent()
+        emitter.run(SKAction.sequence([wait, remove]))
+    }
+    
     // MARK: - Boss AI
     
     func updateBossAI() {
         let bossWidth: CGFloat = 70
         
-        // Ball is going up - try to intercept like a paddle!
+        // AI evolves with levels!
+        // Level 1-2: Basic AI, predictable
+        // Level 3-4: Starts dodging lasers, more precise
+        // Level 5+: Aggressive, rare mistakes
+        // Level 10+: Almost impossible
+        
+        let aiLevel = level  // No cap - keeps getting harder!
+        let aiLevelDouble = Double(aiLevel)
+        
+        // Calculate AI skill (0.0 to 1.0) - unlimited!
+        let aiSkill = aiLevelDouble / 10.0
+        
+        // Error chance decreases FASTER with level
+        let mistakeChance = max(0.3 - (aiLevelDouble - 1) * 0.04, 0.02)  // 30% at lvl 1, 2% at lvl 8+
+        let makeMistake = Double.random(in: 0...1) < mistakeChance
+        
+        // Precision improves with level
+        let predictionAccuracy = 0.7 + aiLevelDouble * 0.04  // 74% + 4% per level
+        
+        // Laser dodge at level 6+
+        
+        // Ball is going up - try to intercept!
         if ballVelocity.dy > 0 {
-            // Calculate where ball will be when it reaches boss level
-            let timeToBoss = (boss.position.y - ball.position.y) / ballVelocity.dy
-            let predictedX = ball.position.x + ballVelocity.dx * timeToBoss
+            let timeToBoss = (boss.position.y - ball.position.y) / max(ballVelocity.dy, 1)
+            var predictedX = ball.position.x + ballVelocity.dx * timeToBoss * predictionAccuracy
+            
+            // Add error if making mistake
+            if makeMistake {
+                predictedX += CGFloat.random(in: -60...60)
+            }
             
             // Move to intercept
-            if predictedX > boss.position.x + 5 {
-                boss.position.x += bossSpeed * (1/60)
-            } else if predictedX < boss.position.x - 5 {
-                boss.position.x -= bossSpeed * (1/60)
+            let speedMultiplier = makeMistake ? 0.6 : 1.0
+            if predictedX > boss.position.x + 5.0 {
+                boss.position.x += CGFloat(bossSpeed * speedMultiplier * (1.0/60.0))
+            } else if predictedX < boss.position.x - 5.0 {
+                boss.position.x -= CGFloat(bossSpeed * speedMultiplier * (1.0/60.0))
             }
+            
         } else {
-            // Ball going down - return to center slowly
+            // Ball going down - return to center
             let centerX = size.width / 2
-            if centerX > boss.position.x + 20 {
-                boss.position.x += (bossSpeed * 0.5) * (1/60)
-            } else if centerX < boss.position.x - 20 {
-                boss.position.x -= (bossSpeed * 0.5) * (1/60)
+            let returnSpeed = bossSpeed * (makeMistake ? 0.3 : 0.6)
+            
+            if centerX > boss.position.x + 20.0 {
+                boss.position.x += CGFloat(returnSpeed * (1.0/60.0))
+            } else if centerX < boss.position.x - 20.0 {
+                boss.position.x -= CGFloat(returnSpeed * (1.0/60.0))
             }
         }
         
-        // Avoid lasers coming up!
-        for laser in lasers {
-            if laser.position.y > boss.position.y - 40 && laser.position.y < boss.position.y + 20 {
-                if laser.position.x < boss.position.x && boss.position.x < size.width - bossWidth/2 {
-                    boss.position.x += bossSpeed * 0.9 * (1/60)
-                } else if laser.position.x > boss.position.x && boss.position.x > bossWidth/2 {
-                    boss.position.x -= bossSpeed * 0.9 * (1/60)
+        // Dodge lasers (level 6+) - reduced effectiveness
+        if aiLevel >= 6 {
+            for laser in lasers {
+                if laser.position.y > boss.position.y - 60 && laser.position.y < boss.position.y + 30 {
+                    let dodgeSpeed = bossSpeed * (makeMistake ? 0.4 : 0.7)
+                    if laser.position.x < boss.position.x && boss.position.x < size.width - bossWidth/2 {
+                        boss.position.x += CGFloat(dodgeSpeed * (1.0/60.0))
+                    } else if laser.position.x > boss.position.x && boss.position.x > bossWidth/2 {
+                        boss.position.x -= CGFloat(dodgeSpeed * (1.0/60.0))
+                    }
                 }
             }
         }
@@ -506,6 +560,9 @@ class GameScene: SKScene {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     self.boss.alpha = 1.0
                 }
+                
+                // Particle explosion
+                createExplosion(at: CGPoint(x: laser.position.x, y: boss.position.y))
                 
                 if bossHP <= 0 {
                     winGame()
