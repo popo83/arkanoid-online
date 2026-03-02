@@ -14,6 +14,7 @@ class GameScene: SKScene {
     var isBallActive = false
     var isGameOver = false
     var score = 0
+    var highScore = 0
     var scoreLabel: SKLabelNode!
     var canShoot = true
     var bossSpeed: CGFloat = 250
@@ -22,6 +23,7 @@ class GameScene: SKScene {
     var playerHP = 3
     var maxPlayerHP = 3
     var level = 1
+    var gameState = "menu" // menu, playing, gameover
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
     let playerShootInterval: TimeInterval = 0.4
@@ -90,12 +92,56 @@ class GameScene: SKScene {
     override func didMove(to view: SKView) {
         view.showsFPS = false
         view.showsNodeCount = false
-        setupGame()
+        // Load high score
+        highScore = UserDefaults.standard.integer(forKey: "highScore")
+        showMenu()
+    }
+    
+    func showMenu() {
+        gameState = "menu"
+        backgroundColor = SKColor.black
+        removeAllChildren()
+        
+        // Title
+        let titleLabel = SKLabelNode(text: "ARKANOID")
+        titleLabel.fontSize = 48
+        titleLabel.fontColor = .white
+        titleLabel.position = CGPoint(x: size.width / 2, y: size.height - 120)
+        addChild(titleLabel)
+        
+        let subtitleLabel = SKLabelNode(text: "BOSS BATTLE")
+        subtitleLabel.fontSize = 28
+        subtitleLabel.fontColor = .red
+        subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
+        addChild(subtitleLabel)
+        
+        // High Score
+        let hsLabel = SKLabelNode(text: "HIGH SCORE: \(highScore)")
+        hsLabel.fontSize = 22
+        hsLabel.fontColor = .yellow
+        hsLabel.position = CGPoint(x: size.width / 2, y: size.height - 220)
+        addChild(hsLabel)
+        
+        // Start Button
+        let startButton = SKLabelNode(text: "TAP TO START")
+        startButton.name = "startButton"
+        startButton.fontSize = 28
+        startButton.fontColor = .green
+        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        addChild(startButton)
+        
+        // Instructions
+        let instrLabel = SKLabelNode(text: "Tap to shoot | Dodge enemy lasers")
+        instrLabel.fontSize = 14
+        instrLabel.fontColor = .gray
+        instrLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        addChild(instrLabel)
     }
     
     // MARK: - Setup
     
     func setupGame() {
+        gameState = "playing"
         backgroundColor = SKColor.black
         
         removeAllChildren()
@@ -242,17 +288,26 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         
+        // Menu state
+        if gameState == "menu" {
+            gameState = "playing"
+            setupGame()
+            return
+        }
+        
         if isGameOver {
             if childNode(withName: "nextLevel") != nil {
                 // Level up!
+                let savedScore = score
                 level += 1
                 let currentLevel = level
                 setupGame()
                 level = currentLevel
+                score = savedScore
+                scoreLabel.text = "Lv.\(level) | Score: \(score)"
             } else {
-                // Full restart
-                level = 1
-                setupGame()
+                // Go to menu
+                showMenu()
             }
             return
         }
@@ -266,7 +321,7 @@ class GameScene: SKScene {
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard isBallActive, let touch = touches.first else { return }
+        guard gameState == "playing", isBallActive, let touch = touches.first else { return }
         movePaddle(to: touch.location(in: self).x)
     }
     
@@ -567,20 +622,41 @@ class GameScene: SKScene {
     func gameOver() {
         isBallActive = false
         isGameOver = true
+        gameState = "gameover"
+        
+        // Save high score
+        if score > highScore {
+            highScore = score
+            UserDefaults.standard.set(highScore, forKey: "highScore")
+        }
         
         playGameOver()
         
-        let gameOverLabel = SKLabelNode(text: "Game Over")
+        let gameOverLabel = SKLabelNode(text: "GAME OVER")
         gameOverLabel.fontSize = 40
         gameOverLabel.fontColor = .red
-        gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 30)
         addChild(gameOverLabel)
         
-        let restartLabel = SKLabelNode(text: "Tap to Restart")
-        restartLabel.fontSize = 20
-        restartLabel.fontColor = .white
-        restartLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 40)
-        restartLabel.name = "restart"
-        addChild(restartLabel)
+        // Current score
+        let scoreLabel = SKLabelNode(text: "Score: \(score)")
+        scoreLabel.fontSize = 24
+        scoreLabel.fontColor = .white
+        scoreLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
+        addChild(scoreLabel)
+        
+        // High score
+        let hsLabel = SKLabelNode(text: "High Score: \(highScore)")
+        hsLabel.fontSize = 20
+        hsLabel.fontColor = .yellow
+        hsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        addChild(hsLabel)
+        
+        let menuLabel = SKLabelNode(text: "Tap for Menu")
+        menuLabel.fontSize = 20
+        menuLabel.fontColor = .gray
+        menuLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 90)
+        menuLabel.name = "menu"
+        addChild(menuLabel)
     }
 }
