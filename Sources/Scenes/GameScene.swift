@@ -96,6 +96,8 @@ class GameScene: SKScene {
     
     func playHitBoss() {
         run(hitBossSound)
+        // Boss speaks when hit!
+        speakBossHit()
     }
     
     func playPlayerHit() {
@@ -104,14 +106,44 @@ class GameScene: SKScene {
     
     func playLevelUp() {
         run(levelUpSound)
+        speakLevelUp()
     }
     
     func playGameOver() {
         run(gameOverSound)
+        speakGameOver()
     }
     
     func playLaserHit() {
         run(laserHitSound)
+    }
+    
+    // MARK: - Voice Functions (ElevenLabs TTS)
+    func speakBossHit() {
+        let phrases = ["Got you!", "Nice try!", "Missed me!", "Too slow!", "Ouch!", "Gotcha!"]
+        let phrase = phrases.randomElement() ?? "Got you!"
+        speakText(phrase)
+    }
+    
+    func speakLevelUp() {
+        let phrases = ["Level up! Good luck!", "Warning: Boss stronger!", "Prepare yourself!", "Difficulty rising!", "Here we go!"]
+        let phrase = phrases.randomElement() ?? "Level up!"
+        speakText(phrase)
+    }
+    
+    func speakGameOver() {
+        let phrases = ["Game over!", "You lost!", "Try again!", "Better luck next time!"]
+        let phrase = phrases.randomElement() ?? "Game over!"
+        speakText(phrase)
+    }
+    
+    func speakText(_ text: String) {
+        // This will be called via URL scheme to the app
+        // For now, we'll prepare the data and send via notification
+        let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "4in01d://speak?text=\(encoded)") {
+            UIApplication.shared.open(url)
+        }
     }
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
     let ballColor = UIColor.white
