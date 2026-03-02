@@ -567,25 +567,38 @@ class GameScene: SKScene {
     }
     
     func createExplosion(at position: CGPoint) {
-        // Create multiple small sprites as explosion particles
-        for _ in 0..<20 {
-            let particle = SKSpriteNode(color: .orange, size: CGSize(width: 10, height: 10))
-            particle.position = position
-            particle.alpha = 1.0
-            particle.name = "explosionParticle"
-            addChild(particle)
-            
-            // Random direction
-            let angle = CGFloat.random(in: 0...(CGFloat.pi * 2))
-            let speed = CGFloat.random(in: 80...200)
-            let dx = cos(angle) * speed
-            let dy = sin(angle) * speed
-            
-            let move = SKAction.moveBy(x: dx, y: dy, duration: 0.6)
-            let fade = SKAction.fadeOut(withDuration: 0.6)
-            let remove = SKAction.removeFromParent()
-            particle.run(SKAction.sequence([move, fade, remove]))
+        let emitter = SKEmitterNode()
+        
+        // Create a circular texture for particles
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 10, height: 10))
+        let image = renderer.image { ctx in
+            UIColor.orange.setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(x: 0, y: 0, width: 10, height: 10))
         }
+        emitter.particleTexture = SKTexture(image: image)
+        
+        emitter.particleBirthRate = 100
+        emitter.numParticlesToEmit = 30
+        emitter.particleLifetime = 1.0
+        emitter.particleLifetimeRange = 0.5
+        emitter.particleSpeed = 150
+        emitter.particleSpeedRange = 100
+        emitter.particleAlpha = 1.0
+        emitter.particleAlphaRange = 0.3
+        emitter.particleAlphaSpeed = -0.8
+        emitter.particleScale = 0.5
+        emitter.particleScaleRange = 0.3
+        emitter.particleScaleSpeed = -0.3
+        emitter.particleColor = .orange
+        emitter.particleColorBlendFactor = 1.0
+        emitter.emissionAngleRange = CGFloat.pi * 2
+        emitter.position = position
+        emitter.zPosition = 100
+        addChild(emitter)
+        
+        let wait = SKAction.wait(forDuration: 2.0)
+        let remove = SKAction.removeFromParent()
+        emitter.run(SKAction.sequence([wait, remove]))
     }
     
     // MARK: - Boss AI
