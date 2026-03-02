@@ -885,7 +885,7 @@ class GameScene: SKScene {
         let levelUpLabel = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
         levelUpLabel.fontSize = 36
         levelUpLabel.fontColor = .green
-        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
+        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 80)
         addChild(levelUpLabel)
         
         // Sci-fi warning messages per level
@@ -909,7 +909,7 @@ class GameScene: SKScene {
         let warningLabel = SKLabelNode(text: warning)
         warningLabel.fontSize = 14
         warningLabel.fontColor = .yellow
-        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 40)
+        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 55)
         addChild(warningLabel)
         
         // Real AI stats for next level
@@ -921,7 +921,7 @@ class GameScene: SKScene {
         let aiStatsLabel = SKLabelNode(text: "ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% | SPD:\(bossSpeedLvl)")
         aiStatsLabel.fontSize = 12
         aiStatsLabel.fontColor = .cyan
-        aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 20)
+        aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 35)
         addChild(aiStatsLabel)
         
         // HP info
@@ -929,7 +929,7 @@ class GameScene: SKScene {
         let nextLabel = SKLabelNode(text: "Tap for \(hpText)")
         nextLabel.fontSize = 18
         nextLabel.fontColor = .white
-        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 15)
+        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
         nextLabel.name = "nextLevel"
         addChild(nextLabel)
     }
