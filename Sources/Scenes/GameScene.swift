@@ -568,8 +568,8 @@ class GameScene: SKScene {
     
     func createExplosion(at position: CGPoint) {
         // Create multiple small sprites as explosion particles
-        for _ in 0..<15 {
-            let particle = SKSpriteNode(color: .orange, size: CGSize(width: 8, height: 8))
+        for _ in 0..<20 {
+            let particle = SKSpriteNode(color: .orange, size: CGSize(width: 10, height: 10))
             particle.position = position
             particle.alpha = 1.0
             particle.name = "explosionParticle"
@@ -577,12 +577,12 @@ class GameScene: SKScene {
             
             // Random direction
             let angle = CGFloat.random(in: 0...(CGFloat.pi * 2))
-            let speed = CGFloat.random(in: 50...150)
+            let speed = CGFloat.random(in: 80...200)
             let dx = cos(angle) * speed
             let dy = sin(angle) * speed
             
-            let move = SKAction.moveBy(x: dx, y: dy, duration: 0.5)
-            let fade = SKAction.fadeOut(withDuration: 0.5)
+            let move = SKAction.moveBy(x: dx, y: dy, duration: 0.6)
+            let fade = SKAction.fadeOut(withDuration: 0.6)
             let remove = SKAction.removeFromParent()
             particle.run(SKAction.sequence([move, fade, remove]))
         }
