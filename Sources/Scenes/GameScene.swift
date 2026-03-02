@@ -1,7 +1,49 @@
 import SpriteKit
+import GameKit
 import AVFoundation
 
-class GameScene: SKScene {
+class GameScene: SKScene, GKGameCenterControllerDelegate {
+    
+    // Game Center
+    var isGameCenterEnabled = false
+    
+    // MARK: - Game Center
+    
+    func authenticatePlayer() {
+        let localPlayer = GKLocalPlayer.local
+        
+        localPlayer.authenticateHandler = { [weak self] viewController, error in
+            if viewController != nil {
+                // Show Game Center login
+                self?.view?.window?.rootViewController?.present(viewController!, animated: true)
+            } else if error == nil {
+                self?.isGameCenterEnabled = true
+                print("Game Center enabled!")
+            }
+        }
+    }
+    
+    func showGameCenter() {
+        let gcViewController = GKGameCenterViewController(leaderboardID: "4IN01D_Leaderboard", playerScope: .global, timeScope: .allTime)
+        gcViewController.gameCenterDelegate = self
+        view?.window?.rootViewController?.present(gcViewController, animated: true)
+    }
+    
+    func submitScore(_ score: Int) {
+        guard isGameCenterEnabled else { return }
+        
+        GKLeaderboard.submitScore(score, context: 0, player: GKLocalPlayer.local, leaderboardIDs: ["4IN01D_Leaderboard"]) { error in
+            if let error = error {
+                print("Error submitting score: \(error)")
+            } else {
+                print("Score submitted!")
+            }
+        }
+    }
+    
+    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
+        gameCenterViewController.dismiss(animated: true)
+    }
     
     // MARK: - Game Objects
     var paddle: SKSpriteNode!
@@ -26,6 +68,8 @@ class GameScene: SKScene {
     var playerHP = 3
     var maxPlayerHP = 3
     var level = 1
+    var easterEggStartTime: TimeInterval = 0  // Easter egg timer
+    var aiAbilitiesUsed: [String] = []
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
     var backgroundMusic: AVAudioPlayer?
@@ -67,28 +111,26 @@ class GameScene: SKScene {
         run(shootSound)
     }
     
-    var musicAction: SKAction?
-    var isMusicPlaying = false
-    
     func playBackgroundMusic() {
-        // If music is already playing, don't start again
-        if isMusicPlaying {
+        if backgroundMusic?.isPlaying == true { return }
+        guard let url = Bundle.main.url(forResource: "music", withExtension: "wav") else {
+            print("Music file not found!")
             return
         }
-        
-        // Remove all actions to be sure
-        removeAllActions()
-        
-        // Play music loop using wav
-        let playMusic = SKAction.playSoundFileNamed("music.wav", waitForCompletion: true)
-        musicAction = SKAction.repeatForever(playMusic)
-        run(musicAction!, withKey: "bgmusic")
-        isMusicPlaying = true
+        do {
+            backgroundMusic = try AVAudioPlayer(contentsOf: url)
+            backgroundMusic?.numberOfLoops = -1 // loop infinito
+            backgroundMusic?.volume = 0.5 // Regola il volume se serve
+            backgroundMusic?.prepareToPlay()
+            backgroundMusic?.play()
+        } catch {
+            print("Errore nel caricamento della musica: \(error)")
+        }
     }
     
     func stopBackgroundMusic() {
-        removeAllActions()
-        isMusicPlaying = false
+        backgroundMusic?.stop()
+        backgroundMusic = nil
     }
     
     func playHitBoss() {
@@ -125,7 +167,72 @@ class GameScene: SKScene {
         highScore = UserDefaults.standard.integer(forKey: "highScore")
         // Load total play time
         totalPlayTime = UserDefaults.standard.double(forKey: "totalPlayTime")
-        showMenu()
+        
+        // Authenticate Game Center
+        authenticatePlayer()
+        
+        // Show loading screen first
+        showLoadingScreen()
+    }
+    
+    func showLoadingScreen() {
+        gameState = "loading"
+        backgroundColor = SKColor.black
+        
+        // AI model loading title
+        let loadingLabel = SKLabelNode(text: "AI model loading...")
+        loadingLabel.fontSize = 32
+        loadingLabel.fontColor = .cyan
+        loadingLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        loadingLabel.name = "loadingLabel"
+        addChild(loadingLabel)
+        
+        // Dots animation
+        var dots = ""
+        let addDot = SKAction.run { [weak self] in
+            dots = dots.count < 3 ? dots + "." : ""
+            if let label = self?.childNode(withName: "loadingLabel") as? SKLabelNode {
+                label.text = "AI model loading" + dots
+            }
+        }
+        let wait = SKAction.wait(forDuration: 0.4)
+        let dotSequence = SKAction.sequence([addDot, wait])
+        run(SKAction.repeatForever(dotSequence), withKey: "dots")
+        
+        // Wait 2 seconds then go to menu
+        let finishLoading = SKAction.run { [weak self] in
+            self?.removeAction(forKey: "dots")
+            self?.showMenu()
+        }
+        
+        let waitAction = SKAction.wait(forDuration: 2.0)
+        run(SKAction.sequence([waitAction, finishLoading]), withKey: "loading")
+    }
+    
+    func showDebugConfirm() {
+        // Ask: Enable debug mode?
+        let confirmLabel = SKLabelNode(text: "Enable debug mode?")
+        confirmLabel.fontSize = 20
+        confirmLabel.fontColor = .yellow
+        confirmLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
+        confirmLabel.name = "confirmLabel"
+        addChild(confirmLabel)
+        
+        // YES button
+        let yesBtn = SKLabelNode(text: "YES")
+        yesBtn.fontSize = 28
+        yesBtn.fontColor = .green
+        yesBtn.position = CGPoint(x: size.width / 2 - 60, y: size.height / 2)
+        yesBtn.name = "yesBtn"
+        addChild(yesBtn)
+        
+        // NO button
+        let noBtn = SKLabelNode(text: "NO")
+        noBtn.fontSize = 28
+        noBtn.fontColor = .red
+        noBtn.position = CGPoint(x: size.width / 2 + 60, y: size.height / 2)
+        noBtn.name = "noBtn"
+        addChild(noBtn)
     }
     
     func showMenu() {
@@ -145,6 +252,7 @@ class GameScene: SKScene {
         
         // Title
         let titleLabel = SKLabelNode(text: "4IN01D")
+        titleLabel.name = "titleLabel"
         titleLabel.fontSize = 48
         titleLabel.fontColor = .cyan
         titleLabel.position = CGPoint(x: size.width / 2, y: size.height - 120)
@@ -173,10 +281,10 @@ class GameScene: SKScene {
         timeLabel.position = CGPoint(x: size.width / 2, y: size.height - 250)
         addChild(timeLabel)
         
-        // Start Button
-        let startButton = SKLabelNode(text: "TAP TO START")
+        // START Button
+        let startButton = SKLabelNode(text: "START")
         startButton.name = "startButton"
-        startButton.fontSize = 28
+        startButton.fontSize = 32
         startButton.fontColor = .green
         startButton.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(startButton)
@@ -188,6 +296,14 @@ class GameScene: SKScene {
         debugButton.fontColor = .red
         debugButton.position = CGPoint(x: size.width / 2, y: 50)
         addChild(debugButton)
+        
+        // Game Center Button
+        let gcButton = SKLabelNode(text: "🏆 LEADERBOARD")
+        gcButton.name = "leaderboard"
+        gcButton.fontSize = 16
+        gcButton.fontColor = .yellow
+        gcButton.position = CGPoint(x: size.width / 2, y: 80)
+        addChild(gcButton)
         
         // Instructions
         let instrLabel = SKLabelNode(text: "Developed by J4K08")
@@ -204,6 +320,8 @@ class GameScene: SKScene {
         // Start play timer
         gameStartTime = Date().timeIntervalSince1970
         backgroundColor = SKColor.black
+        // Reset AI abilities tracking
+        aiAbilitiesUsed = []
         // Level stays the same on level up! (handled in touchesBegan)
         
         removeAllChildren()
@@ -236,7 +354,7 @@ class GameScene: SKScene {
     
     func setupLevelParameters() {
         // Boss starts with 10 HP, +5 per level
-        maxBossHP = min(10 + (level - 1) * 5, 50)  // +5/lvl, max 50
+        maxBossHP = min(10 + (level - 1) * 5, 30)  // +5/lvl, max 30
         bossHP = maxBossHP
         bossSpeed = 250 + CGFloat(level - 1) * 80  // Reduced from 120
         enemyShootInterval = 0.8 - Double(level - 1) * 0.05  // Reduced from 0.07
@@ -381,6 +499,57 @@ class GameScene: SKScene {
         // Menu state
         if gameState == "menu" {
             let touchLocation = touch.location(in: self)
+            
+            // Check confirm buttons (YES/NO for debug)
+            if childNode(withName: "yesBtn") != nil {
+                if let yesBtn = childNode(withName: "yesBtn") {
+                    let yesFrame = CGRect(x: yesBtn.position.x - 30, y: yesBtn.position.y - 15, width: 60, height: 30)
+                    if yesFrame.contains(touchLocation) {
+                        // Enable debug mode!
+                        infiniteHP = true
+                        // Remove confirm buttons
+                        childNode(withName: "confirmLabel")?.removeFromParent()
+                        childNode(withName: "yesBtn")?.removeFromParent()
+                        childNode(withName: "noBtn")?.removeFromParent()
+                        // Remove debug button
+                        childNode(withName: "debugInfiniteHP")?.removeFromParent()
+                        // Show confirmation
+                        let enabledLabel = SKLabelNode(text: "DEBUG ATTIVATO!")
+                        enabledLabel.fontSize = 24
+                        enabledLabel.fontColor = .green
+                        enabledLabel.position = CGPoint(x: size.width / 2, y: 50)
+                        enabledLabel.name = "debugEnabled"
+                        addChild(enabledLabel)
+                        return
+                    }
+                }
+                if let noBtn = childNode(withName: "noBtn") {
+                    let noFrame = CGRect(x: noBtn.position.x - 30, y: noBtn.position.y - 15, width: 60, height: 30)
+                    if noFrame.contains(touchLocation) {
+                        // Cancel - remove buttons
+                        childNode(withName: "confirmLabel")?.removeFromParent()
+                        childNode(withName: "yesBtn")?.removeFromParent()
+                        childNode(withName: "noBtn")?.removeFromParent()
+                        return
+                    }
+                }
+            }
+            
+            // Check Game Center button
+            if let gcBtn = childNode(withName: "leaderboard") as? SKLabelNode {
+                let btnFrame = CGRect(
+                    x: gcBtn.position.x - 80,
+                    y: gcBtn.position.y - 15,
+                    width: 160,
+                    height: 30
+                )
+                if btnFrame.contains(touchLocation) {
+                    showGameCenter()
+                    return
+                }
+            }
+            
+            // Check debug button
             if let debugBtn = childNode(withName: "debugInfiniteHP") as? SKLabelNode {
                 let btnFrame = CGRect(
                     x: debugBtn.position.x - 100,
@@ -395,7 +564,31 @@ class GameScene: SKScene {
                     return
                 }
             }
+            
+            // Check title tap for Easter egg
+            if let titleNode = childNode(withName: "titleLabel") {
+                let titleFrame = CGRect(
+                    x: titleNode.position.x - 100,
+                    y: titleNode.position.y - 30,
+                    width: 200,
+                    height: 60
+                )
+                if titleFrame.contains(touchLocation) {
+                    // Flash title
+                    titleNode.alpha = 0.5
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        titleNode.alpha = 1.0
+                    }
+                    // Show debug confirmation
+                    showDebugConfirm()
+                    return
+                }
+            }
+            
+            // Start game when tapping START button
             gameState = "playing"
+            // Cancel easter egg timer
+            removeAction(forKey: "easterEgg")
             setupGame()
             return
         }
@@ -562,18 +755,29 @@ class GameScene: SKScene {
             }
         }
         
-        // Dodge lasers (level 6+) - reduced effectiveness
+        // Dodge lasers (level 6+)
         if aiLevel >= 6 {
+            var dodged = false
             for laser in lasers {
                 if laser.position.y > boss.position.y - 60 && laser.position.y < boss.position.y + 30 {
                     let dodgeSpeed = bossSpeed * (makeMistake ? 0.4 : 0.7)
                     if laser.position.x < boss.position.x && boss.position.x < size.width - bossWidth/2 {
                         boss.position.x += CGFloat(dodgeSpeed * (1.0/60.0))
+                        dodged = true
                     } else if laser.position.x > boss.position.x && boss.position.x > bossWidth/2 {
                         boss.position.x -= CGFloat(dodgeSpeed * (1.0/60.0))
+                        dodged = true
                     }
                 }
             }
+            if dodged && !aiAbilitiesUsed.contains("⚡ Laser Dodge") {
+                aiAbilitiesUsed.append("⚡ Laser Dodge")
+            }
+        }
+        
+        // Track prediction
+        if !aiAbilitiesUsed.contains("🎯 Ball Prediction") {
+            aiAbilitiesUsed.append("🎯 Ball Prediction")
         }
         
         // Keep boss in bounds
@@ -827,11 +1031,7 @@ class GameScene: SKScene {
         
         playLevelUp()
         
-        let levelUpLabel = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
-        levelUpLabel.fontSize = 36
-        levelUpLabel.fontColor = .green
-        levelUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
-        addChild(levelUpLabel)
+        // Level complete title moved below with other labels
         
         // Sci-fi warning messages per level
         let sciFiWarnings = [
@@ -851,30 +1051,38 @@ class GameScene: SKScene {
         let warningIndex = min(nextLvl - 1, sciFiWarnings.count - 1)
         let warning = sciFiWarnings[warningIndex]
         
+        // LEVEL UP title
+        let levelUpTitle = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
+        levelUpTitle.fontSize = 32
+        levelUpTitle.fontColor = .green
+        levelUpTitle.position = CGPoint(x: size.width / 2, y: size.height / 2 + 80)
+        addChild(levelUpTitle)
+        
+        // Warning message
         let warningLabel = SKLabelNode(text: warning)
-        warningLabel.fontSize = 14
+        warningLabel.fontSize = 18
         warningLabel.fontColor = .yellow
-        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 40)
+        warningLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
         addChild(warningLabel)
         
         // Real AI stats for next level
         let aiAccuracy = 0.90 + Double(nextLvl) * 0.01
         let mistakeChance = max(0.30 - (Double(nextLvl) - 1) * 0.05, 0.02)
         let bossSpeedLvl = 250 + (nextLvl - 1) * 80
-        let bossHPLvl = min(10 + (nextLvl - 1) * 5, 50)
+        let bossHPLvl = min(10 + (nextLvl - 1) * 5, 30)
         
         let aiStatsLabel = SKLabelNode(text: "ACC:\(String(format: "%.0f", aiAccuracy*100))% ERR:\(String(format: "%.0f", mistakeChance*100))% | SPD:\(bossSpeedLvl)")
-        aiStatsLabel.fontSize = 12
+        aiStatsLabel.fontSize = 14
         aiStatsLabel.fontColor = .cyan
-        aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 20)
+        aiStatsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 25)
         addChild(aiStatsLabel)
         
         // HP info
         let hpText = "Boss HP: \(bossHPLvl)"
         let nextLabel = SKLabelNode(text: "Tap for \(hpText)")
-        nextLabel.fontSize = 18
+        nextLabel.fontSize = 20
         nextLabel.fontColor = .white
-        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 15)
+        nextLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 10)
         nextLabel.name = "nextLevel"
         addChild(nextLabel)
     }
@@ -945,6 +1153,8 @@ class GameScene: SKScene {
         if score > highScore && !infiniteHP {
             highScore = score
             UserDefaults.standard.set(highScore, forKey: "highScore")
+            // Submit to Game Center
+            submitScore(score)
         }
         
         playGameOver()
@@ -969,11 +1179,23 @@ class GameScene: SKScene {
         hsLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
         addChild(hsLabel)
         
-        let menuLabel = SKLabelNode(text: "Tap for Menu")
-        menuLabel.fontSize = 20
-        menuLabel.fontColor = .gray
-        menuLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 90)
-        menuLabel.name = "menu"
-        addChild(menuLabel)
+        // AI abilities used title
+        let aiTitle = SKLabelNode(text: "AI Abilities Used:")
+        aiTitle.fontSize = 16
+        aiTitle.fontColor = .cyan
+        aiTitle.position = CGPoint(x: size.width / 2, y: size.height / 2 - 80)
+        addChild(aiTitle)
+        
+        // Show AI abilities
+        var yAbil = size.height / 2 - 105
+        for ability in aiAbilitiesUsed {
+            let abilLabel = SKLabelNode(text: ability)
+            abilLabel.fontSize = 14
+            abilLabel.fontColor = .green
+            abilLabel.position = CGPoint(x: size.width / 2, y: yAbil)
+            addChild(abilLabel)
+            yAbil -= 20
+        }
     }
 }
+
