@@ -128,7 +128,63 @@ class GameScene: SKScene {
         highScore = UserDefaults.standard.integer(forKey: "highScore")
         // Load total play time
         totalPlayTime = UserDefaults.standard.double(forKey: "totalPlayTime")
-        showMenu()
+        
+        // Show loading screen first (3 seconds minimum)
+        showLoadingScreen()
+    }
+    
+    func showLoadingScreen() {
+        gameState = "loading"
+        backgroundColor = SKColor.black
+        
+        // Animated loading title
+        let loadingLabel = SKLabelNode(text: "4IN01D")
+        loadingLabel.fontSize = 48
+        loadingLabel.fontColor = .green
+        loadingLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 30)
+        loadingLabel.name = "loadingLabel"
+        addChild(loadingLabel)
+        
+        // Pulsing animation
+        let pulse = SKAction.sequence([
+            SKAction.scale(to: 1.1, duration: 0.5),
+            SKAction.scale(to: 1.0, duration: 0.5)
+        ])
+        loadingLabel.run(SKAction.repeatForever(pulse))
+        
+        // Loading dots
+        for i in 0..<3 {
+            let dot = SKLabelNode(text: ".")
+            dot.fontSize = 48
+            dot.fontColor = .green
+            dot.position = CGPoint(x: size.width / 2 + 70 + CGFloat(i) * 20, y: size.height / 2 + 30)
+            dot.name = "dot\(i)"
+            dot.alpha = 0.3
+            addChild(dot)
+            
+            // Animate dots
+            let delay = Double(i) * 0.3
+            let fade = SKAction.sequence([
+                SKAction.wait(forDuration: delay),
+                SKAction.fadeIn(withDuration: 0.3),
+                SKAction.fadeOut(withDuration: 0.3)
+            ])
+            dot.run(SKAction.repeatForever(fade))
+        }
+        
+        // Loading subtitle
+        let subLabel = SKLabelNode(text: "LOADING...")
+        subLabel.fontSize = 18
+        subLabel.fontColor = .gray
+        subLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 30)
+        subLabel.name = "subLabel"
+        addChild(subLabel)
+        
+        // Show menu after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            self?.removeAllChildren()
+            self?.showMenu()
+        }
     }
     
     func showMenu() {
