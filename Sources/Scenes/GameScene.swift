@@ -37,7 +37,47 @@ class GameScene: SKScene {
     let laserSpeed: CGFloat = 500
     let shootCooldown: TimeInterval = 0.25
     
-    // MARK: - Colors
+    // MARK: - Sound Effects
+    var shootSound: SKAction!
+    var hitBossSound: SKAction!
+    var playerHitSound: SKAction!
+    var levelUpSound: SKAction!
+    var gameOverSound: SKAction!
+    var laserHitSound: SKAction!
+    
+    func setupSounds() {
+        // Load sound effects - check console for errors
+        hitBossSound = SKAction.playSoundFileNamed("hit.wav", waitForCompletion: false)
+        playerHitSound = SKAction.playSoundFileNamed("hurt.wav", waitForCompletion: false)
+        levelUpSound = SKAction.playSoundFileNamed("levelup.wav", waitForCompletion: false)
+        gameOverSound = SKAction.playSoundFileNamed("gameover.wav", waitForCompletion: false)
+        laserHitSound = SKAction.playSoundFileNamed("laserhit.wav", waitForCompletion: false)
+        shootSound = SKAction()
+    }
+    
+    func playShoot() {
+        run(shootSound)
+    }
+    
+    func playHitBoss() {
+        run(hitBossSound)
+    }
+    
+    func playPlayerHit() {
+        run(playerHitSound)
+    }
+    
+    func playLevelUp() {
+        run(levelUpSound)
+    }
+    
+    func playGameOver() {
+        run(gameOverSound)
+    }
+    
+    func playLaserHit() {
+        run(laserHitSound)
+    }
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
     let ballColor = UIColor.white
     let laserColor = UIColor.red
@@ -61,6 +101,8 @@ class GameScene: SKScene {
         lasers.removeAll()
         enemyLasers.removeAll()
         
+        setupSounds()
+        
         setupPaddle()
         setupBall()
         setupBoss()
@@ -77,7 +119,6 @@ class GameScene: SKScene {
         isGameOver = false
         score = 0
         canShoot = true
-        level = 1
         playerHP = 3
         maxPlayerHP = 3
         
@@ -172,6 +213,8 @@ class GameScene: SKScene {
         guard canShoot else { return }
         canShoot = false
         
+        // No sound - too annoying with auto-shoot!
+        
         let laser = SKSpriteNode(color: laserColor, size: CGSize(width: 3, height: 15))
         laser.position = CGPoint(x: paddle.position.x, y: paddle.position.y + paddleHeight)
         laser.name = "laser"
@@ -202,7 +245,9 @@ class GameScene: SKScene {
             if childNode(withName: "nextLevel") != nil {
                 // Level up!
                 level += 1
+                let currentLevel = level
                 setupGame()
+                level = currentLevel
             } else {
                 // Full restart
                 level = 1
@@ -347,6 +392,7 @@ class GameScene: SKScene {
             
             // Ball bounces off laser
             if ball.frame.intersects(laser.frame) {
+                playLaserHit()
                 ballVelocity.dy = abs(ballVelocity.dy)
                 ballVelocity.dx += CGFloat.random(in: -30...30)
                 laser.removeFromParent()
@@ -358,6 +404,7 @@ class GameScene: SKScene {
             
             // Laser hits boss - DAMAGE BOSS!
             if laser.frame.intersects(bossFrame) {
+                playHitBoss()
                 laser.removeFromParent()
                 lasers.remove(at: i)
                 bossHP -= 1
@@ -411,6 +458,7 @@ class GameScene: SKScene {
                 enemyLasers.remove(at: i)
                 
                 playerHP -= 1
+                playPlayerHit()
                 updatePaddleAppearance()
                 
                 // Flash paddle
@@ -430,6 +478,7 @@ class GameScene: SKScene {
         // Ball falls below paddle - lose HP!
         if ball.position.y < 0 {
             playerHP -= 1
+            playPlayerHit()
             updatePaddleAppearance()
             
             // Flash paddle
@@ -461,6 +510,8 @@ class GameScene: SKScene {
         isBallActive = false
         isGameOver = true
         
+        playLevelUp()
+        
         let levelUpLabel = SKLabelNode(text: "LEVEL \(level) COMPLETE!")
         levelUpLabel.fontSize = 36
         levelUpLabel.fontColor = .green
@@ -478,6 +529,8 @@ class GameScene: SKScene {
     func gameOver() {
         isBallActive = false
         isGameOver = true
+        
+        playGameOver()
         
         let gameOverLabel = SKLabelNode(text: "Game Over")
         gameOverLabel.fontSize = 40

@@ -7,22 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00210C235C94ACC1BBA3FD3F /* gameover.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */; };
 		061EE7028492229CCDC7295A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D4D97305B21435907E5899 /* AppDelegate.swift */; };
 		07994A23B9DBD33EB1C094DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6833840C761598922CDF56 /* SceneDelegate.swift */; };
 		5B363DA86AA54B107FDD658A /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDFB595B4E556B1D95B1516 /* GameScene.swift */; };
-		A25B42130C867FF31FAE122F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1CD550F4F4616A0C9EEDFA81 /* LaunchScreen.storyboard */; };
-		B347CA86745D6E32B0ADE1C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C55D9977441D1EC3DC60C13 /* Assets.xcassets */; };
+		8674FD11D79562BDE0024009 /* laserhit.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5AC11ECB51BFAECEA517043D /* laserhit.wav */; };
+		91E033002AD2BEB828817EE9 /* levelup.wav in Resources */ = {isa = PBXBuildFile; fileRef = 450B6609FA01CF625745861B /* levelup.wav */; };
+		C5D9A715DC83454FD78077A1 /* hurt.wav in Resources */ = {isa = PBXBuildFile; fileRef = 23C8D543894E430CB78438FC /* hurt.wav */; };
 		CAC7B80715A2ADA4BD244A63 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C273487091A8107944EA34EF /* GameViewController.swift */; };
+		CFFC3C50D7CED543165FDEB6 /* hit.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5D2F961EB839730A2AD4E54F /* hit.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gameover.wav; sourceTree = "<group>"; };
 		0DDFB595B4E556B1D95B1516 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		0E6833840C761598922CDF56 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		16D4D97305B21435907E5899 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		1C55D9977441D1EC3DC60C13 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		1CD550F4F4616A0C9EEDFA81 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		23C8D543894E430CB78438FC /* hurt.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hurt.wav; sourceTree = "<group>"; };
+		450B6609FA01CF625745861B /* levelup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = levelup.wav; sourceTree = "<group>"; };
+		5AC11ECB51BFAECEA517043D /* laserhit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = laserhit.wav; sourceTree = "<group>"; };
+		5D2F961EB839730A2AD4E54F /* hit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hit.wav; sourceTree = "<group>"; };
 		90DBCB15410B15EB3C986E4B /* ArkanoidOnline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArkanoidOnline.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9377DFA4C63E1D36B510BA91 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C273487091A8107944EA34EF /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -30,9 +35,11 @@
 		52A5F6F3FC43166ED5E21F34 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				1C55D9977441D1EC3DC60C13 /* Assets.xcassets */,
-				9377DFA4C63E1D36B510BA91 /* Info.plist */,
-				1CD550F4F4616A0C9EEDFA81 /* LaunchScreen.storyboard */,
+				0D99A0A2ECAEFF218C3A3ED2 /* gameover.wav */,
+				5D2F961EB839730A2AD4E54F /* hit.wav */,
+				23C8D543894E430CB78438FC /* hurt.wav */,
+				5AC11ECB51BFAECEA517043D /* laserhit.wav */,
+				450B6609FA01CF625745861B /* levelup.wav */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -101,7 +108,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					0EDA7EA2EF89C672CAE298B0 = {
 						ProvisioningStyle = Automatic;
@@ -131,8 +138,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B347CA86745D6E32B0ADE1C6 /* Assets.xcassets in Resources */,
-				A25B42130C867FF31FAE122F /* LaunchScreen.storyboard in Resources */,
+				00210C235C94ACC1BBA3FD3F /* gameover.wav in Resources */,
+				CFFC3C50D7CED543165FDEB6 /* hit.wav in Resources */,
+				C5D9A715DC83454FD78077A1 /* hurt.wav in Resources */,
+				8674FD11D79562BDE0024009 /* laserhit.wav in Resources */,
+				91E033002AD2BEB828817EE9 /* levelup.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,10 +198,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = VZ4K3XG4L9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -205,7 +213,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -219,6 +226,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = VZ4K3XG4L9;
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -265,10 +273,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = VZ4K3XG4L9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -289,7 +295,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -303,6 +308,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = VZ4K3XG4L9;
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

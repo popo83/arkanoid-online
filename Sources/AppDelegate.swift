@@ -10,11 +10,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window = UIWindow(frame: UIScreen.main.bounds)
         
-        // Create a simple view controller
         let viewController = UIViewController()
         viewController.view.backgroundColor = .black
         
-        // Create SKView
         let skView = SKView(frame: window!.bounds)
         skView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
