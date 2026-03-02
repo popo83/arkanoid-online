@@ -173,7 +173,7 @@ class GameScene: SKScene {
         }
         
         // Loading subtitle
-        let subLabel = SKLabelNode(text: "LOADING...")
+        let subLabel = SKLabelNode(text: "AI model loading...")
         subLabel.fontSize = 18
         subLabel.fontColor = .gray
         subLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 30)
