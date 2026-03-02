@@ -705,6 +705,25 @@ class GameScene: SKScene {
                 }
                 continue
             }
+            
+            // Check collision with enemy lasers - LASER VS LASER!
+            for j in stride(from: enemyLasers.count - 1, through: 0, by: -1) {
+                if j < enemyLasers.count && laser.frame.intersects(enemyLasers[j].frame) {
+                    // Both lasers destroyed!
+                    let collisionPoint = CGPoint(
+                        x: (laser.position.x + enemyLasers[j].position.x) / 2,
+                        y: (laser.position.y + enemyLasers[j].position.y) / 2
+                    )
+                    createExplosion(at: collisionPoint)
+                    
+                    enemyLasers[j].removeFromParent()
+                    enemyLasers.remove(at: j)
+                    
+                    laser.removeFromParent()
+                    lasers.remove(at: i)
+                    break  // Stop checking this laser
+                }
+            }
         }
         
         // Enemy lasers
