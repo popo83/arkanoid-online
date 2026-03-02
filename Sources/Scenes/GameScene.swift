@@ -184,7 +184,7 @@ class GameScene: SKScene {
     
     func setupLevelParameters() {
         // Boss starts with 10 HP, +5 per level
-        maxBossHP = 10 + (level - 1) * 10  // +10 HP per level
+        maxBossHP = min(10 + (level - 1) * 5, 50)  // +5/lvl, max 50
         bossHP = maxBossHP
         bossSpeed = 250 + CGFloat(level - 1) * 80  // Reduced from 120
         enemyShootInterval = 0.8 - Double(level - 1) * 0.05  // Reduced from 0.07
@@ -194,7 +194,8 @@ class GameScene: SKScene {
     
     func setupPaddle() {
         paddle = SKSpriteNode(color: paddleColor, size: CGSize(width: paddleWidth, height: paddleHeight))
-        paddle.position = CGPoint(x: size.width / 2, y: 100)
+        paddle.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.14)
+        paddle.size = CGSize(width: self.size.width * 0.2, height: 15)
         paddle.name = "paddle"
         addChild(paddle)
     }
@@ -254,7 +255,7 @@ class GameScene: SKScene {
         scoreLabel = SKLabelNode(text: "Lv.\(level) | Score: \(score)")
         scoreLabel.fontSize = 16
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 15, y: size.height - 30)  // Top left
+        scoreLabel.position = CGPoint(x: 15, y: size.height - 70)  // Top left
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
         
@@ -263,7 +264,7 @@ class GameScene: SKScene {
         bossHPLabel.name = "bossHPLabel"
         bossHPLabel.fontSize = 16
         bossHPLabel.fontColor = .red
-        bossHPLabel.position = CGPoint(x: 15, y: size.height - 55)  // Below score
+        bossHPLabel.position = CGPoint(x: 15, y: size.height - 100)  // Below score
         bossHPLabel.horizontalAlignmentMode = .left
         addChild(bossHPLabel)
         

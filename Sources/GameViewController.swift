@@ -9,12 +9,14 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Remove safe area insets for fullscreen
-        edgesForExtendedLayout = []
+        // Extend under safe areas
+        edgesForExtendedLayout = [.top, .bottom]
+        view.insetsLayoutMarginsFromSafeArea = false
         
-        // Full screen
+        // Full screen SKView
         skView = SKView(frame: view.bounds)
         skView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        skView.translatesAutoresizingMaskIntoConstraints = true
         skView.ignoresSiblingOrder = true
         skView.showsFPS = false
         skView.showsNodeCount = false
@@ -27,6 +29,11 @@ class GameViewController: UIViewController {
         
         skView.presentScene(gameScene)
         view.addSubview(skView)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        skView.frame = view.bounds
     }
     
     override var prefersStatusBarHidden: Bool {
