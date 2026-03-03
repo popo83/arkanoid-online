@@ -218,40 +218,21 @@ class GameScene: SKScene {
     }
     
     func speakBossDeath() {
-        // Boss death phrase when HP reaches 0
-        let availableIndices = Set(0..<bossDeathPhrases.count).subtracting(usedDeathIndices)
-        if let idx = availableIndices.randomElement() {
-            usedDeathIndices.insert(idx)
-            let phrase = bossDeathPhrases[idx]
-            speakText(phrase)
-        } else {
-            let phrase = bossDeathPhrases.randomElement() ?? "You will never defeat me!"
-            speakText(phrase)
-        }
+        // Boss death phrase when HP reaches 0 - random each time!
+        let phrase = bossDeathPhrases.randomElement() ?? "Non mi hai ancora sconfitto!"
+        speakText(phrase)
     }
     
     func speakLevelUp() {
-        let availableIndices = Set(0..<levelUpPhrases.count).subtracting(usedLevelUpIndices)
-        if let idx = availableIndices.randomElement() {
-            usedLevelUpIndices.insert(idx)
-            let phrase = levelUpPhrases[idx]
-            speakText(phrase)
-        } else {
-            let phrase = levelUpPhrases.randomElement() ?? "You think you can beat me?!"
-            speakText(phrase)
-        }
+        // Random each time!
+        let phrase = levelUpPhrases.randomElement() ?? "Prossimo livello... sarà peggiore!"
+        speakText(phrase)
     }
     
     func speakGameOver() {
-        let availableIndices = Set(0..<gameOverPhrases.count).subtracting(usedGameOverIndices)
-        if let idx = availableIndices.randomElement() {
-            usedGameOverIndices.insert(idx)
-            let phrase = gameOverPhrases[idx]
-            speakText(phrase)
-        } else {
-            let phrase = gameOverPhrases.randomElement() ?? "I AM THE BOSS! You are NOTHING!"
-            speakText(phrase)
-        }
+        // Random each time!
+        let phrase = gameOverPhrases.randomElement() ?? "Game Over! Sei patetico!"
+        speakText(phrase)
     }
     
     // MARK: - AI Chat Function
@@ -559,8 +540,7 @@ class GameScene: SKScene {
         print("🤖 AI: Pre-generating + recycling phrases...")
         phrasesGenerated = 0
         
-        // First load any saved phrases from previous session
-        loadSavedPhrases()
+        // Generate fresh phrases each time
         
         // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
@@ -717,8 +697,7 @@ class GameScene: SKScene {
     
     func goToMenuFromLoading() {
         removeAllChildren()
-        saveUnusedPhrases()  // Save for next session
-        // Reset used indices for new session
+        // Fresh phrases each session
         usedWelcomeIndices.removeAll()
         usedDeathIndices.removeAll()
         usedLevelUpIndices.removeAll()
@@ -762,13 +741,8 @@ class GameScene: SKScene {
         subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         addChild(subtitleLabel)
         
-        // AI Welcome Message (from pool, tracking usage)
-        let availableWelcome = Set(0..<welcomePhrases.count).subtracting(usedWelcomeIndices)
-        var welcomeText = "I am waiting..."
-        if let idx = availableWelcome.randomElement() {
-            usedWelcomeIndices.insert(idx)
-            welcomeText = welcomePhrases[idx]
-        }
+        // AI Welcome Message - random each time!
+        let welcomeText = welcomePhrases.randomElement() ?? "Non osare sfidarmi!"
         
         let aiMessage = SKLabelNode(text: welcomeText)
         aiMessage.fontSize = 16
