@@ -356,8 +356,10 @@ class GameScene: SKScene {
         }
         
         if let data = audioData {
+            print("🔊 Playing pre-generated audio, size: \(data.count)")
             playAudio(data: data)
         } else {
+            print("🔊 No pre-generated audio found, trying live TTS")
             // Fallback to live TTS
             speakWithElevenLabs(text: text)
         }
@@ -629,6 +631,7 @@ class GameScene: SKScene {
             generateTTSAudio(text: phrase) { [weak self] data in
                 if let data = data {
                     self?.welcomeAudioData.append(data)
+                    print("✅ Saved welcome audio #\(self?.welcomeAudioData.count ?? 0)")
                 }
                 self?.audioGenerated += 1
                 self?.checkAudioReady()
