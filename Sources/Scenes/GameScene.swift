@@ -153,8 +153,8 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Using OpenAI API as backup since MiniMax failed
-        let apiKey = "sk-" // Use a valid OpenAI key or remove to use fallback phrases
+        // Using OpenAI API with the provided key
+        let apiKey = "sk-api-BCuvsVmF1GkihtiPIIyJTMFyrsKOR_KkuweQtpqmW48pmVJdSItEGTwa_wGm4czp0fqt9d_oI0wsKXa-e7JPnDicbEsY88CmDeZ14Gu7UT13lUv2TFjRLRw"
         
         // If no valid API key, use fallback phrases
         if apiKey == "sk-" {
