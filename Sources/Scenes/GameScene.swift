@@ -127,7 +127,7 @@ class GameScene: SKScene {
         let context = "The player just hit you. You are an evil arcade boss. Say something short and mean in 3-6 words."
         askAI(prompt: context) { [weak self] response in
             print("🤖 AI Response: \(response)")
-            self?.speakWithElevenLabs(text: response)
+            self?.speakText(response)  // Use text instead of TTS
         }
     }
     
@@ -137,7 +137,7 @@ class GameScene: SKScene {
         let context = "The player just leveled up. You are an evil arcade boss. Give a short ominous warning in 4-8 words."
         askAI(prompt: context) { [weak self] response in
             print("🤖 AI Response: \(response)")
-            self?.speakWithElevenLabs(text: response)
+            self?.speakText(response)
         }
     }
     
@@ -147,7 +147,7 @@ class GameScene: SKScene {
         let context = "The player lost. You are an evil arcade boss. Say something mocking and short in 2-5 words."
         askAI(prompt: context) { [weak self] response in
             print("🤖 AI Response: \(response)")
-            self?.speakWithElevenLabs(text: response)
+            self?.speakText(response)
         }
     }
     
