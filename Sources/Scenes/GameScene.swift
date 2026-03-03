@@ -419,18 +419,25 @@ class GameScene: SKScene {
         subLabel.name = "subLabel"
         addChild(subLabel)
         
-        // Show menu after 3 seconds
-        let wait = SKAction.wait(forDuration: 3.0)
-        let showMenu = SKAction.run { [weak self] in
-            self?.removeAllChildren()
-            self?.showMenu()
+        // Start AI phrase generation (will auto-transition when ready)
+        preGeneratePhrases()
+        
+        // Backup: after 10 seconds, go to menu anyway
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+            if self?.gameState == "loading" {
+                self?.goToMenuFromLoading()
+            }
         }
-        run(SKAction.sequence([wait, showMenu]))
     }
+    
+    // Pre-generated AI phrases counter
+    var phrasesGenerated = 0
+    let totalPhrases = 20  // 5 phrases x 4 categories
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
         print("🤖 AI: Pre-generating 5 elaborate phrases each...")
+        phrasesGenerated = 0
         
         // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
@@ -439,6 +446,8 @@ class GameScene: SKScene {
                 if !response.isEmpty && response.count > 10 {
                     self?.welcomePhrases[i-1] = response
                 }
+                self?.phrasesGenerated += 1
+                self?.checkPhrasesReady()
             }
         }
         
@@ -449,6 +458,8 @@ class GameScene: SKScene {
                 if !response.isEmpty && response.count > 10 {
                     self?.bossDeathPhrases[i-1] = response
                 }
+                self?.phrasesGenerated += 1
+                self?.checkPhrasesReady()
             }
         }
         
@@ -459,6 +470,8 @@ class GameScene: SKScene {
                 if !response.isEmpty && response.count > 10 {
                     self?.levelUpPhrases[i-1] = response
                 }
+                self?.phrasesGenerated += 1
+                self?.checkPhrasesReady()
             }
         }
         
@@ -469,8 +482,26 @@ class GameScene: SKScene {
                 if !response.isEmpty && response.count > 10 {
                     self?.gameOverPhrases[i-1] = response
                 }
+                self?.phrasesGenerated += 1
+                self?.checkPhrasesReady()
             }
         }
+    }
+    
+    func checkPhrasesReady() {
+        print("🤖 AI: \(phrasesGenerated)/\(totalPhrases) phrases ready")
+        
+        if phrasesGenerated >= totalPhrases {
+            // All phrases ready - go to menu
+            DispatchQueue.main.async { [weak self] in
+                self?.goToMenuFromLoading()
+            }
+        }
+    }
+    
+    func goToMenuFromLoading() {
+        removeAllChildren()
+        showMenu()
     }
     
     func showMenu() {
