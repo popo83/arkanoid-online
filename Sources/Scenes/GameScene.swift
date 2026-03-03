@@ -338,15 +338,15 @@ class GameScene: SKScene {
         
         let message = SKLabelNode(text: text)
         message.name = "bossMessage"
-        message.fontSize = 24
+        message.fontSize = 20
         message.fontColor = .red
-        message.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        message.position = CGPoint(x: size.width / 2, y: size.height - 130)  // Below boss HP
         message.alpha = 0
         addChild(message)
         
-        // Animation: fade in, wait, fade out
+        // Animation: fade in, wait 5 sec, fade out
         let fadeIn = SKAction.fadeIn(withDuration: 0.3)
-        let wait = SKAction.wait(forDuration: 1.5)
+        let wait = SKAction.wait(forDuration: 5.0)  // 5 seconds!
         let fadeOut = SKAction.fadeOut(withDuration: 0.5)
         let remove = SKAction.removeFromParent()
         
