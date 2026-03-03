@@ -672,6 +672,15 @@ class GameScene: SKScene {
         startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
         addChild(startButton)
         
+        // Music toggle button
+        let musicText = musicEnabled ? "🔊 MUSIC ON" : "🔇 MUSIC OFF"
+        let musicButton = SKLabelNode(text: musicText)
+        musicButton.name = "musicButton"
+        musicButton.fontSize = 16
+        musicButton.fontColor = .gray
+        musicButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 55)
+        addChild(musicButton)
+        
         // Leaderboard button
         let leaderboardButton = SKLabelNode(text: "🏆 LEADERBOARD")
         leaderboardButton.name = "leaderboardButton"
@@ -883,6 +892,27 @@ class GameScene: SKScene {
         // Menu state
         if gameState == "menu" {
             let touchLocation = touch.location(in: self)
+            
+            // Check music toggle button
+            if let musicBtn = childNode(withName: "musicButton") as? SKLabelNode {
+                let musicFrame = CGRect(
+                    x: musicBtn.position.x - 60,
+                    y: musicBtn.position.y - 15,
+                    width: 120,
+                    height: 30
+                )
+                if musicFrame.contains(touchLocation) {
+                    musicEnabled = !musicEnabled
+                    if musicEnabled {
+                        playBackgroundMusic()
+                        musicBtn.text = "🔊 MUSIC ON"
+                    } else {
+                        backgroundMusic?.stop()
+                        musicBtn.text = "🔇 MUSIC OFF"
+                    }
+                    return
+                }
+            }
             
             // Check leaderboard button
             if let lbBtn = childNode(withName: "leaderboardButton") as? SKLabelNode {
