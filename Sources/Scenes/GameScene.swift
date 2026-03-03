@@ -121,24 +121,30 @@ class GameScene: SKScene {
     // MARK: - Voice Functions (ElevenLabs TTS)
     func speakBossHit() {
         // AI generates a response based on game context
+        print("🤖 AI: Generating boss hit response...")
         let context = "The player just hit you. You are an evil arcade boss. Say something short and mean in 3-6 words."
         askAI(prompt: context) { [weak self] response in
+            print("🤖 AI Response: \(response)")
             self?.speakWithElevenLabs(text: response)
         }
     }
     
     func speakLevelUp() {
         // AI generates a threat for level up
+        print("🤖 AI: Generating level up response...")
         let context = "The player just leveled up. You are an evil arcade boss. Give a short ominous warning in 4-8 words."
         askAI(prompt: context) { [weak self] response in
+            print("🤖 AI Response: \(response)")
             self?.speakWithElevenLabs(text: response)
         }
     }
     
     func speakGameOver() {
         // AI generates a mocking message
+        print("🤖 AI: Generating game over response...")
         let context = "The player lost. You are an evil arcade boss. Say something mocking and short in 2-5 words."
         askAI(prompt: context) { [weak self] response in
+            print("🤖 AI Response: \(response)")
             self?.speakWithElevenLabs(text: response)
         }
     }
@@ -194,6 +200,8 @@ class GameScene: SKScene {
     }
     
     func speakWithElevenLabs(text: String) {
+        print("🎤 TTS Request: \(text)")
+        
         let apiKey = "sk_787f8c73b2e0abbab6165882ef85dfa3d1826eb0bc8e9d6c"
         let voiceId = "Rachel"
         
@@ -226,11 +234,15 @@ class GameScene: SKScene {
     
     func playAudio(data: Data) {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
+            // Configure audio session for playback
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try audioSession.setActive(true)
             
             let player = try AVAudioPlayer(data: data)
+            player.prepareToPlay()
             player.play()
+            print("🔊 Playing audio, duration: \(player.duration)")
         } catch {
             print("Audio Error: \(error.localizedDescription)")
         }
