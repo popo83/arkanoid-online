@@ -30,10 +30,11 @@ class GameScene: SKScene {
     var maxPlayerHP = 3
     var level = 1
     
-    // Pre-generated AI phrases (loaded during splash screen)
-    var currentBossHitPhrase = "Got you!"
-    var currentLevelUpPhrase = "Level up!"
-    var currentGameOverPhrase = "Game over!"
+    // Pre-generated AI phrases (loaded during splash screen) - 5 each!
+    var bossHitPhrases: [String] = ["Got you!", "Too slow!", "Nice try!", "Missed me!", "Ouch!"]
+    var levelUpPhrases: [String] = ["Good luck!", "Danger!", "Warning!", "Here we go!", "Prepare!"]
+    var gameOverPhrases: [String] = ["Game over!", "You lost!", "Try again!", "Pathetic!", "Owned!"]
+    var welcomePhrases: [String] = ["I wait...", "Try me!", "Ready?", "Let's go!", "Begin!"]
     var currentWelcomePhrase = "I am waiting..."
     
     var infiniteHP = false
@@ -105,8 +106,10 @@ class GameScene: SKScene {
     
     func playHitBoss() {
         run(hitBossSound)
-        // Boss speaks when hit!
-        speakBossHit()
+        // Boss speaks only 30% of the time when hit!
+        if Double.random(in: 0...1) < 0.3 {
+            speakBossHit()
+        }
     }
     
     func playPlayerHit() {
@@ -129,18 +132,21 @@ class GameScene: SKScene {
     
     // MARK: - Voice Functions (ElevenLabs TTS)
     func speakBossHit() {
-        // Use pre-generated phrase
-        speakText(currentBossHitPhrase)
+        // Pick random from pre-generated phrases
+        let phrase = bossHitPhrases.randomElement() ?? "Got you!"
+        speakText(phrase)
     }
     
     func speakLevelUp() {
-        // Use pre-generated phrase
-        speakText(currentLevelUpPhrase)
+        // Pick random from pre-generated phrases
+        let phrase = levelUpPhrases.randomElement() ?? "Level up!"
+        speakText(phrase)
     }
     
     func speakGameOver() {
-        // Use pre-generated phrase
-        speakText(currentGameOverPhrase)
+        // Pick random from pre-generated phrases
+        let phrase = gameOverPhrases.randomElement() ?? "Game over!"
+        speakText(phrase)
     }
     
     // MARK: - AI Chat Function
@@ -391,34 +397,46 @@ class GameScene: SKScene {
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
-        print("🤖 AI: Pre-generating phrases...")
+        print("🤖 AI: Pre-generating 5 phrases each...")
         
-        // Generate welcome phrase
-        let welcomeContext = "You are an evil arcade boss. Give a short taunt in 2-5 words."
-        askAI(prompt: welcomeContext) { [weak self] response in
-            self?.currentWelcomePhrase = response
-            print("🤖 Welcome phrase: \(response)")
+        // Generate 5 welcome phrases
+        for i in 1...5 {
+            let context = "You are an evil arcade boss. Give a short taunt in 2-5 words. Be creative #\(i)."
+            askAI(prompt: context) { [weak self] response in
+                if !response.isEmpty {
+                    self?.welcomePhrases[i-1] = response
+                }
+            }
         }
         
-        // Generate boss hit phrase
-        let hitContext = "The player hit you. Say something short and mean in 2-5 words."
-        askAI(prompt: hitContext) { [weak self] response in
-            self?.currentBossHitPhrase = response
-            print("🤖 Boss hit phrase: \(response)")
+        // Generate 5 boss hit phrases
+        for i in 1...5 {
+            let context = "Player hit you. Say something short and mean in 2-5 words. Be creative #\(i)."
+            askAI(prompt: context) { [weak self] response in
+                if !response.isEmpty {
+                    self?.bossHitPhrases[i-1] = response
+                }
+            }
         }
         
-        // Generate level up phrase
-        let levelContext = "Player leveled up. Give a short warning in 2-5 words."
-        askAI(prompt: levelContext) { [weak self] response in
-            self?.currentLevelUpPhrase = response
-            print("🤖 Level up phrase: \(response)")
+        // Generate 5 level up phrases
+        for i in 1...5 {
+            let context = "Player leveled up. Give a short warning in 2-5 words. Be creative #\(i)."
+            askAI(prompt: context) { [weak self] response in
+                if !response.isEmpty {
+                    self?.levelUpPhrases[i-1] = response
+                }
+            }
         }
         
-        // Generate game over phrase
-        let gameOverContext = "Player lost. Say something mocking in 2-5 words."
-        askAI(prompt: gameOverContext) { [weak self] response in
-            self?.currentGameOverPhrase = response
-            print("🤖 Game over phrase: \(response)")
+        // Generate 5 game over phrases
+        for i in 1...5 {
+            let context = "Player lost. Say something mocking in 2-5 words. Be creative #\(i)."
+            askAI(prompt: context) { [weak self] response in
+                if !response.isEmpty {
+                    self?.gameOverPhrases[i-1] = response
+                }
+            }
         }
     }
     
