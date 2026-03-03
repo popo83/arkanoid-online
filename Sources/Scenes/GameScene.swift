@@ -30,11 +30,39 @@ class GameScene: SKScene {
     var maxPlayerHP = 3
     var level = 1
     
-    // Pre-generated AI phrases (loaded during splash screen) - 5 each!
-    var bossHitPhrases: [String] = ["Got you!", "Too slow!", "Nice try!", "Missed me!", "Ouch!"]
-    var levelUpPhrases: [String] = ["Good luck!", "Danger!", "Warning!", "Here we go!", "Prepare!"]
-    var gameOverPhrases: [String] = ["Game over!", "You lost!", "Try again!", "Pathetic!", "Owned!"]
-    var welcomePhrases: [String] = ["I wait...", "Try me!", "Ready?", "Let's go!", "Begin!"]
+    // Pre-generated AI phrases (loaded during splash screen) - 5 elaborate each!
+    // Start screen: Insults to make player feel inferior
+    var bossDeathPhrases: [String] = [
+        "Your pitiful attempt ends here!",
+        "Is that all you've got? Pathetic!",
+        "I am UNSTOPPABLE! You are NOTHING!",
+        "Another worthless challenger... DEFEATED!",
+        "Did you really think you could beat ME?!"
+    ]
+    
+    var levelUpPhrases: [String] = [
+        "IMPOSSIBLE! But I will DESTROY you next!",
+        "You got lucky... BUT NOT FOR LONG!",
+        "Fine... Level up! I will CRUSH you harder!",
+        "This changes NOTHING! I am ETERNAL!",
+        "You think you're good? You are NOTHING!"
+    ]
+    
+    var gameOverPhrases: [String] = [
+        "I AM THE BOSS! You are just VERMIN!",
+        "Pathetic human! Return when you're WORTHY!",
+        "GAME OVER! Your soul belongs to ME!",
+        "Insolent fool! You will NEVER defeat me!",
+        "Did you enjoy that? It was just WARMUP!"
+    ]
+    
+    var welcomePhrases: [String] = [
+        "Kneel before your SUPERIOR! I am ETERNAL!",
+        "You dare challenge ME? Your doom APPROACHES!",
+        "Another worthless soul seeking DESTRUCTION!",
+        "I have crushed a THOUSAND like you!",
+        "Your fear... I can SMELL it! Come closer!"
+    ]
     var currentWelcomePhrase = "I am waiting..."
     
     var infiniteHP = false
@@ -132,20 +160,25 @@ class GameScene: SKScene {
     
     // MARK: - Voice Functions (ElevenLabs TTS)
     func speakBossHit() {
-        // Pick random from pre-generated phrases
-        let phrase = bossHitPhrases.randomElement() ?? "Got you!"
+        // Boss no longer speaks when hit - only when dying!
+        // Phrases appear when boss dies (end of level)
+    }
+    
+    func speakBossDeath() {
+        // Boss death phrase when HP reaches 0
+        let phrase = bossDeathPhrases.randomElement() ?? "You will never defeat me!"
         speakText(phrase)
     }
     
     func speakLevelUp() {
         // Pick random from pre-generated phrases
-        let phrase = levelUpPhrases.randomElement() ?? "Level up!"
+        let phrase = levelUpPhrases.randomElement() ?? "You think you can beat me?!"
         speakText(phrase)
     }
     
     func speakGameOver() {
         // Pick random from pre-generated phrases
-        let phrase = gameOverPhrases.randomElement() ?? "Game over!"
+        let phrase = gameOverPhrases.randomElement() ?? "I AM THE BOSS! You are NOTHING!"
         speakText(phrase)
     }
     
@@ -397,33 +430,33 @@ class GameScene: SKScene {
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
-        print("🤖 AI: Pre-generating 5 phrases each...")
+        print("🤖 AI: Pre-generating 5 elaborate phrases each...")
         
-        // Generate 5 welcome phrases
+        // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
-            let context = "You are an evil arcade boss. Give a short taunt in 2-5 words. Be creative #\(i)."
+            let context = "You are an EVIL ARCADE BOSS. Create a THREATENING, AGGRESSIVE insult. Make the player feel INFERIOR and small. Use caps for emphasis. 4-10 words. Be creative #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty {
+                if !response.isEmpty && response.count > 10 {
                     self?.welcomePhrases[i-1] = response
                 }
             }
         }
         
-        // Generate 5 boss hit phrases
+        // Generate 5 boss death phrases (at end of level)
         for i in 1...5 {
-            let context = "Player hit you. Say something short and mean in 2-5 words. Be creative #\(i)."
+            let context = "The boss is dying! Create an ANGRY, DEFIANT last words. The boss should insult the player and threaten them. Use caps. 4-10 words. Creative #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty {
-                    self?.bossHitPhrases[i-1] = response
+                if !response.isEmpty && response.count > 10 {
+                    self?.bossDeathPhrases[i-1] = response
                 }
             }
         }
         
         // Generate 5 level up phrases
         for i in 1...5 {
-            let context = "Player leveled up. Give a short warning in 2-5 words. Be creative #\(i)."
+            let context = "Player beat the level! Create a THREATENING warning. The boss must insult and promise destruction. Use caps. 4-10 words. Creative #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty {
+                if !response.isEmpty && response.count > 10 {
                     self?.levelUpPhrases[i-1] = response
                 }
             }
@@ -431,9 +464,9 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases
         for i in 1...5 {
-            let context = "Player lost. Say something mocking in 2-5 words. Be creative #\(i)."
+            let context = "Player lost completely! Create a MOCKING, EVIL victory taunt. Make the boss sound superior and cruel. Use caps. 4-10 words. Creative #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty {
+                if !response.isEmpty && response.count > 10 {
                     self?.gameOverPhrases[i-1] = response
                 }
             }
@@ -1066,6 +1099,7 @@ class GameScene: SKScene {
                 createExplosion(at: CGPoint(x: laser.position.x, y: boss.position.y))
                 
                 if bossHP <= 0 {
+                    speakBossDeath()  // Boss insult before dying!
                     winGame()
                     return
                 }
