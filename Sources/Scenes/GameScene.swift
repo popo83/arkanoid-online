@@ -383,6 +383,24 @@ class GameScene: SKScene {
         subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         addChild(subtitleLabel)
         
+        // AI Welcome Message
+        let aiMessage = SKLabelNode(text: "Thinking...")
+        aiMessage.fontSize = 16
+        aiMessage.fontColor = .gray
+        aiMessage.position = CGPoint(x: size.width / 2, y: size.height - 190)
+        aiMessage.name = "aiWelcome"
+        addChild(aiMessage)
+        
+        // Generate AI welcome message
+        let context = "You are an evil arcade boss. Give a short挑衅 (taunt) for the player in 2-5 words. Make it menacing but fun."
+        askAI(prompt: context) { [weak self] response in
+            DispatchQueue.main.async {
+                if let label = self?.childNode(withName: "aiWelcome") as? SKLabelNode {
+                    label.text = response
+                }
+            }
+        }
+        
         // High Score
         let hsLabel = SKLabelNode(text: "HIGH SCORE: \(highScore)")
         hsLabel.fontSize = 22
