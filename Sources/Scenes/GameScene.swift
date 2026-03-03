@@ -359,7 +359,7 @@ class GameScene: SKScene {
         print("🎤 TTS Request (disabled): \(text)")
         
         let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
-        let voiceId = "Rachel"
+        let voiceId = "pNInz6obpgDQGcFmaJgB"  // Adam voice (commonly available)
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
         
