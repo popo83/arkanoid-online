@@ -154,7 +154,7 @@ class GameScene: SKScene {
     
     var musicAction: SKAction?
     var isMusicPlaying = false
-    var musicEnabled = true  // Disable for TTS testing
+    var musicEnabled = true  // Enable music again!
     
     func playBackgroundMusic() {
         guard musicEnabled else { return }
@@ -327,8 +327,9 @@ class GameScene: SKScene {
     }
     
     func speakText(_ text: String) {
-        // Show text on screen instead of TTS
+        // Show text on screen + TTS!
         showBossMessage(text)
+        speakWithElevenLabs(text: text)  // Enable TTS!
     }
     
     // Show boss message on screen
@@ -484,11 +485,11 @@ class GameScene: SKScene {
         subLabel.name = "subLabel"
         addChild(subLabel)
         
-        // Start AI phrase generation (will auto-transition when ready)
+        // Start AI phrase generation + TTS (5 seconds)
         preGeneratePhrases()
         
-        // Backup: after 10 seconds, go to menu anyway
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+        // Backup: after 5 seconds, go to menu anyway
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
             if self?.gameState == "loading" {
                 self?.goToMenuFromLoading()
             }
@@ -641,10 +642,12 @@ class GameScene: SKScene {
         addChild(timeLabel)
         
         // Start Button
-        let startButton = SKLabelNode(text: "TAP TO START")
+        // AI START Challenge - replace TAP TO START
+        let startPhrase = welcomePhrases.randomElement() ?? "NON OSARE SFIDARMI!"
+        let startButton = SKLabelNode(text: startPhrase)
         startButton.name = "startButton"
-        startButton.fontSize = 28
-        startButton.fontColor = .green
+        startButton.fontSize = 24
+        startButton.fontColor = .red
         startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
         addChild(startButton)
         
