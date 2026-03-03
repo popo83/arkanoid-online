@@ -153,63 +153,43 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Using OpenAI API with the provided key
-        let apiKey = "sk-api-BCuvsVmF1GkihtiPIIyJTMFyrsKOR_KkuweQtpqmW48pmVJdSItEGTwa_wGm4czp0fqt9d_oI0wsKXa-e7JPnDicbEsY88CmDeZ14Gu7UT13lUv2TFjRLRw"
-        
-        // If no valid API key, use fallback phrases
-        if apiKey == "sk-" {
-            completion(getFallbackPhrase(for: prompt))
-            return
-        }
-        
-        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
-            completion(getFallbackPhrase(for: prompt))
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        
-        let messages: [[String: Any]] = [
-            ["role": "system", "content": "You are a video game boss. Keep responses VERY short (2-8 words). Be menacing."],
-            ["role": "user", "content": prompt]
-        ]
-        
-        let body: [String: Any] = [
-            "model": "gpt-4o-mini",
-            "messages": messages,
-            "max_tokens": 30,
-            "temperature": 0.8
-        ]
-        
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let choices = json["choices"] as? [[String: Any]],
-                  let message = choices.first?["message"] as? [String: Any],
-                  let content = message["content"] as? String else {
-                completion(self.getFallbackPhrase(for: prompt))
-                return
-            }
-            
-            let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
-            completion(cleanResponse)
-        }.resume()
+        // Use smart random phrases instead of external API (more stable)
+        completion(getSmartPhrase(for: prompt))
     }
     
-    func getFallbackPhrase(for prompt: String) -> String {
-        // Fallback phrases when AI is unavailable
-        if prompt.contains("hit you") {
-            return ["Got you!", "Too slow!", "Nice try!", "Missed me!"].randomElement() ?? "Got you!"
-        } else if prompt.contains("leveled up") {
-            return ["Good luck!", "Difficulty rising!", "Here we go!", "Warning!"].randomElement() ?? "Level up!"
-        } else {
-            return ["Game over!", "You lost!", "Try again!"].randomElement() ?? "Game over!"
+    func getSmartPhrase(for prompt: String) -> String {
+        // Smart phrase selection based on context
+        if prompt.contains("hit you") || prompt.contains("hit") {
+            let phrases = [
+                "Got you!", "Too slow!", "Nice try!", 
+                "Missed me?", "Ouch for you!", "Not this time!",
+                "Gotcha!", "Try harder!", "So close!", "Missed!"
+            ]
+            return phrases.randomElement() ?? "Got you!"
+        } else if prompt.contains("leveled up") || prompt.contains("level") {
+            let phrases = [
+                "Good luck!", "Difficulty rising!", "Here we go!",
+                "Warning: stronger!", "Prepare yourself!", "Big mistake!",
+                "More challenge!", "Good luck!", "Danger ahead!"
+            ]
+            return phrases.randomElement() ?? "Level up!"
+        } else if prompt.contains("lost") || prompt.contains("game over") {
+            let phrases = [
+                "Game over!", "You lost!", "Try again!",
+                "Better luck!", "Too easy!", "Pathetic!",
+                "Owned!", "Destroyed!", "Revenge is mine!"
+            ]
+            return phrases.randomElement() ?? "Game over!"
+        } else if prompt.contains("taunt") || prompt.contains("waiting") {
+            let phrases = [
+                "I am waiting...", "Think you can win?",
+                "Your destiny awaits!", "Challenge accepted?",
+                "The boss is ready!", "Prepare to lose!",
+                "Do you dare?", "Your end approaches!"
+            ]
+            return phrases.randomElement() ?? "I am waiting..."
         }
+        return "Got you!"
     }
     
     func speakText(_ text: String) {
