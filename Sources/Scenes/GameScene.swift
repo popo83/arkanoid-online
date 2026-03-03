@@ -390,7 +390,7 @@ class GameScene: SKScene {
         print("🎤 TTS Request (disabled): \(text)")
         
         let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
-        let voiceId = "EXAVITQu4vr4xnSDxMaL"  // Sarah voice
+        let voiceId = "VR6AewTLgFxGq8SpwX53"  // Sam voice (common)
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
         
@@ -444,6 +444,14 @@ class GameScene: SKScene {
     func playAudio(data: Data) {
         print("🔊 Audio data received: \(data.count) bytes")
         
+        // Save to documents for debugging
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioCount = UserDefaults.standard.integer(forKey: "audioSaveCount")
+        let fileURL = documentsPath.appendingPathComponent("tts_\(audioCount).mp3")
+        try? data.write(to: fileURL)
+        UserDefaults.standard.set(audioCount + 1, forKey: "audioSaveCount")
+        print("🔊 Saved audio: \(fileURL.lastPathComponent)")
+        
         do {
             // Configure audio session for playback
             let audioSession = AVAudioSession.sharedInstance()
@@ -456,15 +464,6 @@ class GameScene: SKScene {
             print("🔊 Play started: \(success), duration: \(player.duration)")
         } catch {
             print("🔴 Audio Error: \(error.localizedDescription)")
-            
-            // Try alternative: save to temp file and play
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("speech.m4a")
-            do {
-                try data.write(to: tempURL)
-                print("🔊 Saved to: \(tempURL)")
-            } catch {
-                print("🔴 Save error: \(error)")
-            }
         }
     }
     
