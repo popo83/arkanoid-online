@@ -25,7 +25,7 @@ class GameScene: SKScene {
     var canShoot = true
     var bossSpeed: CGFloat = 250
     var bossHP = 10
-    var maxBossHP = 10
+    var maxBossHP = 10  // will cap at 30
     var playerHP = 3
     var maxPlayerHP = 3
     var level = 1
@@ -77,37 +77,37 @@ class GameScene: SKScene {
         
         print("💾 Saved unused phrases for next session")
     }
-    // Start screen: Insults to make player feel inferior
+    // Start screen: frasi più lunghe (2 righe)
     var bossDeathPhrases: [String] = [
-        "NON MI HAI SCONFITTO!",
-        "TORNERÒ PIÙ FORTE!",
-        "LA MIA VENDETTA!",
-        "NON È FINITA!",
-        "MI SOTTOVALUTI!"
+        "NON MI HAI SCONFITTO, SOLO FERITO\nTORNERÒ A DISTRUGGERTI.",
+        "TORNERÒ PIÙ FORTE E PIÙ FURIOSO\nQUESTA È SOLO UNA PAUSA.",
+        "LA MIA VENDETTA SARÀ DEVASTANTE\nPREGA FINCHÉ PUOI.",
+        "NON È FINITA, È SOLO L’INIZIO\nDEL TUO INCUBO INFINITO.",
+        "MI SOTTOVALUTI, E QUESTO TI UCCIDERÀ\nIO SONO ETERNO."
     ]
     
     var levelUpPhrases: [String] = [
-        "ORA SONO PIÙ FORTE!",
-        "STUPIDO UMANO!",
-        "SEI PATETICO!",
-        "NON VINCERAI MAI!",
-        "LA TUA FINE AVVIENE!"
+        "ORA SONO PIÙ FORTE, PIÙ VELOCE\nPREPARATI A SOFFRIRE DI PIÙ.",
+        "STUPIDO UMANO, HAI SOLO PEGGIORATO LE COSE\nIO AUMENTO, TU CROLLI.",
+        "SEI PATETICO, IO DIVENTO INARRESTABILE\nOGNI TUO PASSO È LA TUA FINE.",
+        "NON VINCERAI MAI, IO CRESCO OGNI SECONDO\nLA TUA FOLLIA SARÀ LA TUA ROVINA.",
+        "LA TUA FINE SI AVVICINA A OGNI LIVELLO\nIO SARÒ IL TUO BOIA."
     ]
     
     var gameOverPhrases: [String] = [
-        "SEI PATETICO!",
-        "NON VALI NULLA!",
-        "VITTORIA MIA!",
-        "STUPIDO UMANO!",
-        "RITORNA QUANDO SEI MIGLIORE!"
+        "SEI PATETICO, HO VINTO ANCORA\nRITORNA SOLO PER ESSERE UMILIATO.",
+        "NON VALI NULLA, LA TUA ANIMA È MIA\nIL TUO DOLORE È SOLO ALL’INIZIO.",
+        "VITTORIA MIA, TU SEI CENERE\nIL TUO DESTINO È ESSERE DIMENTICATO.",
+        "STUPIDO UMANO, IMPARA LA LEZIONE\nIO DOMINO, TU OBBEDISCI.",
+        "RITORNA QUANDO SEI MIGLIORE...\nMA NON LO SARAI MAI."
     ]
     
     var welcomePhrases: [String] = [
-        "NON OSARMI SFIDARE!",
-        "SEI UNA FORMICA!",
-        "TI SCHIACCIO!",
-        "PATETICO UMANO!",
-        "NON VALI NULLA!"
+        "NON OSARE SFIDARMI, INSETTO!\nTI DISTRUGGERÒ LENTAMENTE.",
+        "SEI UNA FORMICA NEL MIO REGNO\nE IO TI SCHIACCERÒ SENZA PIETÀ.",
+        "TI SCHIACCIO, TI SPEZZO, TI UMILIO\nDAVANTI A TUTTO IL MIO ESERCITO.",
+        "PATETICO UMANO, IL TUO DESTINO È DECISO\nSARAI POLVERE SOTTO I MIEI PIEDI.",
+        "NON VALI NULLA, RASSEGNATI\nIO SONO IL TUO INCUBO PEGGIORE."
     ]
     var currentWelcomePhrase = "Non osare sfidarmi!"
     
@@ -122,6 +122,10 @@ class GameScene: SKScene {
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
     var backgroundMusic: AVAudioPlayer?
+    
+    // Added ttsPlayer property here as requested
+    var ttsPlayer: AVAudioPlayer?
+    
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
     let playerShootInterval: TimeInterval = 0.4
@@ -370,7 +374,7 @@ class GameScene: SKScene {
         // TTS ENABLED!
         print("🎤 TTS Request: \(text)")
         
-        let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
+        let apiKey = "sk_0c9e18033386eb934135902b6da92b30ae30322fc98982e5"
         let voiceId = "pNInz6obpgDQGcFmaJgB"  // Roger voice
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
@@ -439,10 +443,10 @@ class GameScene: SKScene {
             try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try audioSession.setActive(true)
             
-            let player = try AVAudioPlayer(data: data)
-            player.prepareToPlay()
-            let success = player.play()
-            print("🔊 Play started: \(success), duration: \(player.duration)")
+            self.ttsPlayer = try AVAudioPlayer(data: data)
+            self.ttsPlayer?.prepareToPlay()
+            let success = self.ttsPlayer?.play() ?? false
+            print("🔊 Play started: \(success), duration: \(self.ttsPlayer?.duration ?? 0)")
         } catch {
             print("🔴 Audio Error: \(error.localizedDescription)")
         }
@@ -848,7 +852,7 @@ class GameScene: SKScene {
     
     func setupLevelParameters() {
         // Boss starts with 10 HP, +5 per level
-        maxBossHP = min(10 + (level - 1) * 5, 50)  // +5/lvl, max 50
+        maxBossHP = min(10 + (level - 1) * 5, 30)  // +5/lvl, max 30
         bossHP = maxBossHP
         bossSpeed = 250 + CGFloat(level - 1) * 80  // Reduced from 120
         enemyShootInterval = 0.8 - Double(level - 1) * 0.05  // Reduced from 0.07
@@ -1673,4 +1677,5 @@ class GameScene: SKScene {
         addChild(menuLabel)
     }
 }
+
 
