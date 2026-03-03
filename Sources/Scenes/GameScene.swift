@@ -145,10 +145,11 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Using OpenAI API
-        let apiKey = "sk-proj-..." // You'll need to provide an OpenAI key
+        // Using MiniMax API (lightweight model)
+        let apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NzY0NTcwMyIsImlhdCI6MTc0MjU2MTYwMCwiZXhwIjoxNzczMTAzNjAwfQ.K9A4Y"
+        let model = "MiniMax-Text-01"
         
-        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+        guard let url = URL(string: "https://api.minimax.chat/v1/text/chatcompletion_v2") else {
             completion("Nice try!")
             return
         }
@@ -164,7 +165,7 @@ class GameScene: SKScene {
         ]
         
         let body: [String: Any] = [
-            "model": "gpt-4o-mini",
+            "model": model,
             "messages": messages,
             "max_tokens": 30,
             "temperature": 0.8
@@ -182,7 +183,6 @@ class GameScene: SKScene {
                 return
             }
             
-            // Clean up response
             let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
             completion(cleanResponse)
         }.resume()
