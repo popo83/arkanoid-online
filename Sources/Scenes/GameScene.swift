@@ -11,6 +11,8 @@ class GameScene: SKScene {
     var ball: SKSpriteNode!
     var lasers: [SKSpriteNode] = []
     var enemyLasers: [SKSpriteNode] = []
+    
+    // Utility: clear all lasers from scene
     var boss: SKSpriteNode!
     
     // MARK: - Game State
@@ -522,11 +524,11 @@ class GameScene: SKScene {
         subLabel.name = "subLabel"
         addChild(subLabel)
         
-        // Start AI phrase generation + TTS (5 seconds)
+        // Start AI phrase generation + TTS
         preGeneratePhrases()
         
-        // Backup: after 5 seconds, go to menu anyway
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15.0) { [weak self] in
+        // Backup: after 3 seconds, go to menu anyway
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             if self?.gameState == "loading" {
                 self?.goToMenuFromLoading()
             }
@@ -1060,6 +1062,8 @@ class GameScene: SKScene {
                 // Level up!
                 let savedScore = score
                 let savedPlayerHP = playerHP
+                // Pulisci i laser prima di cambiare livello
+                clearAllLasers()
                 level += 1
                 setupLevelParameters()  // Reset boss HP for new level!
                 let currentLevel = level
