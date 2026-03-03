@@ -723,6 +723,12 @@ class GameScene: SKScene {
     }
     
     func showMenu() {
+        // Debug: list files in documents
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        if let files = try? FileManager.default.contentsOfDirectory(atPath: documentsPath.path) {
+            print("📁 Files in Documents: \(files)")
+        }
+        
         gameState = "menu"
         backgroundColor = SKColor.black
         // Save play time
