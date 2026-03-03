@@ -138,13 +138,53 @@ class GameScene: SKScene {
     }
     
     func speakText(_ text: String) {
-        // This will be called via URL scheme to the app
-        // For now, we'll prepare the data and send via notification
-        let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "4in01d://speak?text=\(encoded)") {
-            UIApplication.shared.open(url)
+        // Call ElevenLabs TTS directly
+        speakWithElevenLabs(text: text)
+    }
+    
+    func speakWithElevenLabs(text: String) {
+        let apiKey = "sk_787f8c73b2e0abbab6165882ef85dfa3d1826eb0bc8e9d6c"
+        let voiceId = "Rachel"
+        
+        guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
+        
+        let body: [String: Any] = [
+            "text": text,
+            "voice_settings": ["stability": 0.5, "similarity_boost": 0.8]
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let data = data, error == nil else {
+                print("TTS Error: \(error?.localizedDescription ?? "Unknown")")
+                return
+            }
+            
+            // Play audio
+            DispatchQueue.main.async {
+                self?.playAudio(data: data)
+            }
+        }.resume()
+    }
+    
+    func playAudio(data: Data) {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            let player = try AVAudioPlayer(data: data)
+            player.play()
+        } catch {
+            print("Audio Error: \(error.localizedDescription)")
         }
     }
+    
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
     let ballColor = UIColor.white
     let laserColor = UIColor.yellow  // Player lasers

@@ -19,8 +19,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func speakWithElevenLabs(text: String) {
+        print("🔊 TTS Request: \(text)")
+        
         let apiKey = "sk_787f8c73b2e0abbab6165882ef85dfa3d1826eb0bc8e9d6c"
-        let voiceId = "Rachel" // or another voice ID
+        let voiceId = "Rachel"
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
         
