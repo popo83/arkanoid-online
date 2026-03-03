@@ -152,30 +152,29 @@ class GameScene: SKScene {
         run(shootSound)
     }
     
-    var musicAction: SKAction?
-    var isMusicPlaying = false
     var musicEnabled = true  // Enable music again!
     
     func playBackgroundMusic() {
         guard musicEnabled else { return }
-        // If music is already playing, don't start again
-        if isMusicPlaying {
+        if backgroundMusic?.isPlaying == true { return }
+        guard let url = Bundle.main.url(forResource: "music", withExtension: "wav") else {
+            print("Music file not found!")
             return
         }
-        
-        // Remove all actions to be sure
-        removeAllActions()
-        
-        // Play music loop using wav
-        let playMusic = SKAction.playSoundFileNamed("music.wav", waitForCompletion: true)
-        musicAction = SKAction.repeatForever(playMusic)
-        run(musicAction!, withKey: "bgmusic")
-        isMusicPlaying = true
+        do {
+            backgroundMusic = try AVAudioPlayer(contentsOf: url)
+            backgroundMusic?.numberOfLoops = -1
+            backgroundMusic?.volume = 0.5
+            backgroundMusic?.prepareToPlay()
+            backgroundMusic?.play()
+        } catch {
+            print("Errore caricamento musica: \(error)")
+        }
     }
     
     func stopBackgroundMusic() {
-        removeAllActions()
-        isMusicPlaying = false
+        backgroundMusic?.stop()
+        backgroundMusic = nil
     }
     
     func playHitBoss() {
@@ -568,7 +567,7 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases
         for i in 1...5 {
-            let context = "Il giocatore ha perso COMPLETAMENTE! Crea insulti MOCKING e MALVAGI in ITALIANO come: 'sei una formica per me', 'patetico essere inferiore', 'non vali nulla'. Fai sembrare il boss SUPERIORE e CRUDANE. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
+            let context = "Il giocatore ha perso completamente! Crea una FRASE DI VITTORIA MOCcante e MALVAGIA in ITALIANO. Fai sembrare il boss superiore e crudele. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.gameOverPhrases[i-1] = response
