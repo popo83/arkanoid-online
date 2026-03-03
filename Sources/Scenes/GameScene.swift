@@ -29,6 +29,13 @@ class GameScene: SKScene {
     var playerHP = 3
     var maxPlayerHP = 3
     var level = 1
+    
+    // Pre-generated AI phrases (loaded during splash screen)
+    var currentBossHitPhrase = "Got you!"
+    var currentLevelUpPhrase = "Level up!"
+    var currentGameOverPhrase = "Game over!"
+    var currentWelcomePhrase = "I am waiting..."
+    
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
     var backgroundMusic: AVAudioPlayer?
@@ -122,33 +129,18 @@ class GameScene: SKScene {
     
     // MARK: - Voice Functions (ElevenLabs TTS)
     func speakBossHit() {
-        // AI generates a response based on game context
-        print("🤖 AI: Generating boss hit response...")
-        let context = "The player just hit you. You are an evil arcade boss. Say something short and mean in 3-6 words."
-        askAI(prompt: context) { [weak self] response in
-            print("🤖 AI Response: \(response)")
-            self?.speakText(response)  // Use text instead of TTS
-        }
+        // Use pre-generated phrase
+        speakText(currentBossHitPhrase)
     }
     
     func speakLevelUp() {
-        // AI generates a threat for level up
-        print("🤖 AI: Generating level up response...")
-        let context = "The player just leveled up. You are an evil arcade boss. Give a short ominous warning in 4-8 words."
-        askAI(prompt: context) { [weak self] response in
-            print("🤖 AI Response: \(response)")
-            self?.speakText(response)
-        }
+        // Use pre-generated phrase
+        speakText(currentLevelUpPhrase)
     }
     
     func speakGameOver() {
-        // AI generates a mocking message
-        print("🤖 AI: Generating game over response...")
-        let context = "The player lost. You are an evil arcade boss. Say something mocking and short in 2-5 words."
-        askAI(prompt: context) { [weak self] response in
-            print("🤖 AI Response: \(response)")
-            self?.speakText(response)
-        }
+        // Use pre-generated phrase
+        speakText(currentGameOverPhrase)
     }
     
     // MARK: - AI Chat Function
@@ -342,6 +334,9 @@ class GameScene: SKScene {
         gameState = "loading"
         backgroundColor = SKColor.black
         
+        // Pre-generate AI phrases during loading
+        preGeneratePhrases()
+        
         // Animated loading title
         let loadingLabel = SKLabelNode(text: "4IN01D")
         loadingLabel.fontSize = 48
@@ -394,6 +389,39 @@ class GameScene: SKScene {
         run(SKAction.sequence([wait, showMenu]))
     }
     
+    // Pre-generate AI phrases for the game session
+    func preGeneratePhrases() {
+        print("🤖 AI: Pre-generating phrases...")
+        
+        // Generate welcome phrase
+        let welcomeContext = "You are an evil arcade boss. Give a short taunt in 2-5 words."
+        askAI(prompt: welcomeContext) { [weak self] response in
+            self?.currentWelcomePhrase = response
+            print("🤖 Welcome phrase: \(response)")
+        }
+        
+        // Generate boss hit phrase
+        let hitContext = "The player hit you. Say something short and mean in 2-5 words."
+        askAI(prompt: hitContext) { [weak self] response in
+            self?.currentBossHitPhrase = response
+            print("🤖 Boss hit phrase: \(response)")
+        }
+        
+        // Generate level up phrase
+        let levelContext = "Player leveled up. Give a short warning in 2-5 words."
+        askAI(prompt: levelContext) { [weak self] response in
+            self?.currentLevelUpPhrase = response
+            print("🤖 Level up phrase: \(response)")
+        }
+        
+        // Generate game over phrase
+        let gameOverContext = "Player lost. Say something mocking in 2-5 words."
+        askAI(prompt: gameOverContext) { [weak self] response in
+            self?.currentGameOverPhrase = response
+            print("🤖 Game over phrase: \(response)")
+        }
+    }
+    
     func showMenu() {
         gameState = "menu"
         backgroundColor = SKColor.black
@@ -424,23 +452,13 @@ class GameScene: SKScene {
         subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         addChild(subtitleLabel)
         
-        // AI Welcome Message
-        let aiMessage = SKLabelNode(text: "Thinking...")
+        // AI Welcome Message (pre-generated during loading)
+        let aiMessage = SKLabelNode(text: currentWelcomePhrase)
         aiMessage.fontSize = 16
         aiMessage.fontColor = .gray
         aiMessage.position = CGPoint(x: size.width / 2, y: size.height - 190)
         aiMessage.name = "aiWelcome"
         addChild(aiMessage)
-        
-        // Generate AI welcome message
-        let context = "You are an evil arcade boss. Give a short挑衅 (taunt) for the player in 2-5 words. Make it menacing but fun."
-        askAI(prompt: context) { [weak self] response in
-            DispatchQueue.main.async {
-                if let label = self?.childNode(withName: "aiWelcome") as? SKLabelNode {
-                    label.text = response
-                }
-            }
-        }
         
         // High Score
         let hsLabel = SKLabelNode(text: "HIGH SCORE: \(highScore)")
