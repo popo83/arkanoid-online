@@ -792,7 +792,7 @@ class GameScene: SKScene {
         startButton.name = "startButton"
         startButton.fontSize = 24
         startButton.fontColor = .red
-        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 20)
+        startButton.position = CGPoint(x: size.width / 2, y: size.height / 2 + 30)
         addChild(startButton)
         
         // Music toggle button
@@ -801,7 +801,7 @@ class GameScene: SKScene {
         musicButton.name = "musicButton"
         musicButton.fontSize = 16
         musicButton.fontColor = .gray
-        musicButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 55)
+        musicButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 10)
         addChild(musicButton)
         
         // Leaderboard button
@@ -809,7 +809,7 @@ class GameScene: SKScene {
         leaderboardButton.name = "leaderboardButton"
         leaderboardButton.fontSize = 18
         leaderboardButton.fontColor = .yellow
-        leaderboardButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 90)
+        leaderboardButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
         addChild(leaderboardButton)
         
         // DEBUG: Infinite HP Button (bottom center)
