@@ -817,14 +817,14 @@ class GameScene: SKScene {
         debugButton.name = "debugInfiniteHP"
         debugButton.fontSize = 14
         debugButton.fontColor = .red
-        debugButton.position = CGPoint(x: size.width / 2, y: 50)
+        debugButton.position = CGPoint(x: size.width / 2, y: 30)
         addChild(debugButton)
         
         // Instructions
         let instrLabel = SKLabelNode(text: "Developed by J4K08")
         instrLabel.fontSize = 14
         instrLabel.fontColor = .gray
-        instrLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        instrLabel.position = CGPoint(x: size.width / 2, y: 55)
         addChild(instrLabel)
     }
     
