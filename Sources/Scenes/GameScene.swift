@@ -153,8 +153,46 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Use smart random phrases instead of external API (more stable)
-        completion(getSmartPhrase(for: prompt))
+        // Using MiniMax API
+        let apiKey = "sk-api-BCuvsVmF1GkihtiPIIyJTMFyrsKOR_KkuweQtpqmW48pmVJdSItEGTwa_wGm4czp0fqt9d_oI0wsKXa-e7JPnDicbEsY88CmDeZ14Gu7UT13lUv2TFjRLRw"
+        
+        guard let url = URL(string: "https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId=123456789") else {
+            completion(getSmartPhrase(for: prompt))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+        
+        let messages: [[String: Any]] = [
+            ["role": "system", "content": "You are a video game boss. Keep responses VERY short (2-6 words). Be menacing."],
+            ["role": "user", "content": prompt]
+        ]
+        
+        let body: [String: Any] = [
+            "model": "abab6.5s-chat",
+            "messages": messages,
+            "max_tokens": 50,
+            "temperature": 0.7
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let message = choices.first?["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                completion(self?.getSmartPhrase(for: prompt) ?? "Got you!")
+                return
+            }
+            
+            let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            completion(cleanResponse)
+        }.resume()
     }
     
     func getSmartPhrase(for prompt: String) -> String {
