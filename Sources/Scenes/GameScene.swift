@@ -367,11 +367,11 @@ class GameScene: SKScene {
     }
     
     func speakWithElevenLabs(text: String) {
-        // TTS disabled - using text instead
-        print("🎤 TTS Request (disabled): \(text)")
+        // TTS ENABLED!
+        print("🎤 TTS Request: \(text)")
         
         let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
-        let voiceId = "iP95pCZ7a4qJpS0jAEJP"  // Try another voice
+        let voiceId = "iP95pCZ7a4qJpS0jAEJP"
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
         
