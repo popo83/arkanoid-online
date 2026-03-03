@@ -16,6 +16,36 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "23"
             endingLineNumber = "23">
+            <Locations>
+               <Location
+                  uuid = "DD13A4B3-7053-4199-A89F-A8EB8E479F32 - bf06087283cbc204"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ArkanoidOnline.SceneDelegate.speakWithElevenLabs(text: Swift.String) -&gt; ()"
+                  moduleName = "ArkanoidOnline.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jacopochimenti/documenti/openclaw/arkanoid-online/Sources/SceneDelegate.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "DD13A4B3-7053-4199-A89F-A8EB8E479F32 - bf06087283cbc204"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "ArkanoidOnline.SceneDelegate.speakWithElevenLabs(text: Swift.String) -&gt; ()"
+                  moduleName = "ArkanoidOnline.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/jacopochimenti/documenti/openclaw/arkanoid-online/Sources/SceneDelegate.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
