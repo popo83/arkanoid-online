@@ -111,6 +111,14 @@ class GameScene: SKScene {
     ]
     var currentWelcomePhrase = "I am waiting..."
     
+    // Pre-generated TTS audio data
+    var welcomeAudioData: [Data] = []
+    var bossDeathAudioData: [Data] = []
+    var levelUpAudioData: [Data] = []
+    var gameOverAudioData: [Data] = []
+    var audioGenerated = 0
+    let totalAudioToGenerate = 20
+    
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
     var backgroundMusic: AVAudioPlayer?
@@ -326,9 +334,33 @@ class GameScene: SKScene {
     }
     
     func speakText(_ text: String) {
-        // Show text on screen + TTS!
+        // Show text on screen
         showBossMessage(text)
-        speakWithElevenLabs(text: text)  // Enable TTS!
+        
+        // Play pre-generated audio if available
+        playPreGeneratedAudio(for: text)
+    }
+    
+    func playPreGeneratedAudio(for text: String) {
+        // Try to find matching pre-generated audio
+        var audioData: Data?
+        
+        if let idx = welcomePhrases.firstIndex(of: text), idx < welcomeAudioData.count {
+            audioData = welcomeAudioData[idx]
+        } else if let idx = bossDeathPhrases.firstIndex(of: text), idx < bossDeathAudioData.count {
+            audioData = bossDeathAudioData[idx]
+        } else if let idx = levelUpPhrases.firstIndex(of: text), idx < levelUpAudioData.count {
+            audioData = levelUpAudioData[idx]
+        } else if let idx = gameOverPhrases.firstIndex(of: text), idx < gameOverAudioData.count {
+            audioData = gameOverAudioData[idx]
+        }
+        
+        if let data = audioData {
+            playAudio(data: data)
+        } else {
+            // Fallback to live TTS
+            speakWithElevenLabs(text: text)
+        }
     }
     
     // Show boss message on screen
@@ -510,7 +542,7 @@ class GameScene: SKScene {
         preGeneratePhrases()
         
         // Backup: after 5 seconds, go to menu anyway
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15.0) { [weak self] in
             if self?.gameState == "loading" {
                 self?.goToMenuFromLoading()
             }
@@ -582,11 +614,102 @@ class GameScene: SKScene {
         print("🤖 AI: \(phrasesGenerated)/\(totalPhrases) phrases ready")
         
         if phrasesGenerated >= totalPhrases {
-            // All phrases ready - go to menu
+            // All phrases ready - start generating TTS audio
+            generateAllTTSAudio()
+        }
+    }
+    
+    // Generate TTS audio for all phrases during loading
+    func generateAllTTSAudio() {
+        print("🎤 Generating TTS audio for all phrases...")
+        audioGenerated = 0
+        
+        // Generate for welcome phrases
+        for phrase in welcomePhrases {
+            generateTTSAudio(text: phrase) { [weak self] data in
+                if let data = data {
+                    self?.welcomeAudioData.append(data)
+                }
+                self?.audioGenerated += 1
+                self?.checkAudioReady()
+            }
+        }
+        
+        // Generate for boss death phrases
+        for phrase in bossDeathPhrases {
+            generateTTSAudio(text: phrase) { [weak self] data in
+                if let data = data {
+                    self?.bossDeathAudioData.append(data)
+                }
+                self?.audioGenerated += 1
+                self?.checkAudioReady()
+            }
+        }
+        
+        // Generate for level up phrases
+        for phrase in levelUpPhrases {
+            generateTTSAudio(text: phrase) { [weak self] data in
+                if let data = data {
+                    self?.levelUpAudioData.append(data)
+                }
+                self?.audioGenerated += 1
+                self?.checkAudioReady()
+            }
+        }
+        
+        // Generate for game over phrases
+        for phrase in gameOverPhrases {
+            generateTTSAudio(text: phrase) { [weak self] data in
+                if let data = data {
+                    self?.gameOverAudioData.append(data)
+                }
+                self?.audioGenerated += 1
+                self?.checkAudioReady()
+            }
+        }
+    }
+    
+    func checkAudioReady() {
+        print("🎤 TTS: \(audioGenerated)/\(totalAudioToGenerate) audio generated")
+        
+        if audioGenerated >= totalAudioToGenerate {
+            // All audio ready - go to menu
             DispatchQueue.main.async { [weak self] in
                 self?.goToMenuFromLoading()
             }
         }
+    }
+    
+    func generateTTSAudio(text: String, completion: @escaping (Data?) -> Void) {
+        let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
+        let voiceId = "pNInz6obpgDQGcFmaJgB"
+        
+        guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
+        
+        let body: [String: Any] = [
+            "text": text,
+            "voice_settings": ["stability": 0.5, "similarity_boost": 0.8]
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                completion(nil)
+                return
+            }
+            completion(data)
+        }.resume()
     }
     
     func goToMenuFromLoading() {
