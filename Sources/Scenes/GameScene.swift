@@ -532,7 +532,7 @@ class GameScene: SKScene {
         
         // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
-            let context = "You are an EVIL ARCADE BOSS. Create a THREATENING, AGGRESSIVE insult in ITALIAN. Make the player feel INFERIOR. Use caps for emphasis. 4-10 words. Be creative #\(i)."
+            let context = "Sei un CATTIVO boss arcade. Crea un insulto MINACCIOSO e AGRESSSIVO in ITALIANO. Fai sentire il giocatore inferiore. Usa MAIUSCOLE per enfasi. 4-10 parole. Creativo #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.welcomePhrases[i-1] = response
@@ -544,7 +544,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss death phrases (at end of level)
         for i in 1...5 {
-            let context = "The boss is dying! Create an ANGRY, DEFIANT last words in ITALIAN. The boss should insult and threaten. Use caps. 4-10 words. Creative #\(i)."
+            let context = "Il boss sta morendo! Crea parole ULTIME ANGRY E DEFICANTI in ITALIANO. Il boss deve insultare e minacciare. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.bossDeathPhrases[i-1] = response
@@ -556,7 +556,7 @@ class GameScene: SKScene {
         
         // Generate 5 level up phrases
         for i in 1...5 {
-            let context = "Player beat the level! Create a THREATENING warning in ITALIAN. The boss must insult and promise destruction. Use caps. 4-10 words. Creative #\(i)."
+            let context = "Il giocatore ha superato il livello! Crea un AVVISO MINACCIOSO in ITALIANO. Il boss deve insultare e promettere distruzione. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.levelUpPhrases[i-1] = response
@@ -568,7 +568,7 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases
         for i in 1...5 {
-            let context = "Player lost completely! Create a MOCKING, EVIL victory taunt in ITALIAN. Make the boss sound superior and cruel. Use caps. 4-10 words. Creative #\(i)."
+            let context = "Il giocatore ha perso completamente! Crea una FRASE DI VITTORIA MOCcante e MALVAGIA in ITALIANO. Fai sembrare il boss superiore e crudele. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.gameOverPhrases[i-1] = response
