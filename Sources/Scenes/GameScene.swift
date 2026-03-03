@@ -153,12 +153,17 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Using MiniMax API (lightweight model)
-        let apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NzY0NTcwMyIsImlhdCI6MTc0MjU2MTYwMCwiZXhwIjoxNzczMTAzNjAwfQ.K9A4Y"
-        let model = "MiniMax-Text-01"
+        // Using OpenAI API as backup since MiniMax failed
+        let apiKey = "sk-" // Use a valid OpenAI key or remove to use fallback phrases
         
-        guard let url = URL(string: "https://api.minimax.chat/v1/text/chatcompletion_v2") else {
-            completion("Nice try!")
+        // If no valid API key, use fallback phrases
+        if apiKey == "sk-" {
+            completion(getFallbackPhrase(for: prompt))
+            return
+        }
+        
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            completion(getFallbackPhrase(for: prompt))
             return
         }
         
@@ -168,12 +173,12 @@ class GameScene: SKScene {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
         let messages: [[String: Any]] = [
-            ["role": "system", "content": "You are a video game boss character. Keep responses VERY short (2-8 words max). Be menacing but fun."],
+            ["role": "system", "content": "You are a video game boss. Keep responses VERY short (2-8 words). Be menacing."],
             ["role": "user", "content": prompt]
         ]
         
         let body: [String: Any] = [
-            "model": model,
+            "model": "gpt-4o-mini",
             "messages": messages,
             "max_tokens": 30,
             "temperature": 0.8
@@ -187,13 +192,24 @@ class GameScene: SKScene {
                   let choices = json["choices"] as? [[String: Any]],
                   let message = choices.first?["message"] as? [String: Any],
                   let content = message["content"] as? String else {
-                completion("Nice try!")
+                completion(self.getFallbackPhrase(for: prompt))
                 return
             }
             
             let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
             completion(cleanResponse)
         }.resume()
+    }
+    
+    func getFallbackPhrase(for prompt: String) -> String {
+        // Fallback phrases when AI is unavailable
+        if prompt.contains("hit you") {
+            return ["Got you!", "Too slow!", "Nice try!", "Missed me!"].randomElement() ?? "Got you!"
+        } else if prompt.contains("leveled up") {
+            return ["Good luck!", "Difficulty rising!", "Here we go!", "Warning!"].randomElement() ?? "Level up!"
+        } else {
+            return ["Game over!", "You lost!", "Try again!"].randomElement() ?? "Game over!"
+        }
     }
     
     func speakText(_ text: String) {
@@ -235,6 +251,8 @@ class GameScene: SKScene {
     }
     
     func playAudio(data: Data) {
+        print("🔊 Audio data received: \(data.count) bytes")
+        
         do {
             // Configure audio session for playback
             let audioSession = AVAudioSession.sharedInstance()
@@ -243,10 +261,19 @@ class GameScene: SKScene {
             
             let player = try AVAudioPlayer(data: data)
             player.prepareToPlay()
-            player.play()
-            print("🔊 Playing audio, duration: \(player.duration)")
+            let success = player.play()
+            print("🔊 Play started: \(success), duration: \(player.duration)")
         } catch {
-            print("Audio Error: \(error.localizedDescription)")
+            print("🔴 Audio Error: \(error.localizedDescription)")
+            
+            // Try alternative: save to temp file and play
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("speech.m4a")
+            do {
+                try data.write(to: tempURL)
+                print("🔊 Saved to: \(tempURL)")
+            } catch {
+                print("🔴 Save error: \(error)")
+            }
         }
     }
     
