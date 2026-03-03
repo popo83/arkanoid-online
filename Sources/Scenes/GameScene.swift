@@ -901,7 +901,7 @@ class GameScene: SKScene {
         let bossHeight: CGFloat = 20
         
         boss = SKSpriteNode(color: bossColor, size: CGSize(width: bossWidth, height: bossHeight))
-        boss.position = CGPoint(x: size.width / 2, y: size.height - 60)
+        boss.position = CGPoint(x: size.width / 2, y: size.height - 100)
         boss.name = "boss"
         addChild(boss)
     }
