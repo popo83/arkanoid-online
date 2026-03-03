@@ -30,7 +30,53 @@ class GameScene: SKScene {
     var maxPlayerHP = 3
     var level = 1
     
-    // Pre-generated AI phrases (loaded during splash screen) - 5 elaborate each!
+    // Pre-generated AI phrases - recycled from previous sessions!
+    var usedWelcomeIndices: Set<Int> = []
+    var usedDeathIndices: Set<Int> = []
+    var usedLevelUpIndices: Set<Int> = []
+    var usedGameOverIndices: Set<Int> = []
+    
+    // Load saved unused phrases from previous session
+    func loadSavedPhrases() {
+        if let savedWelcome = UserDefaults.standard.array(forKey: "savedWelcomePhrases") as? [String], !savedWelcome.isEmpty {
+            welcomePhrases = savedWelcome
+            print("📚 Loaded \(savedWelcome.count) saved welcome phrases")
+        }
+        if let savedDeath = UserDefaults.standard.array(forKey: "savedBossDeathPhrases") as? [String], !savedDeath.isEmpty {
+            bossDeathPhrases = savedDeath
+            print("📚 Loaded \(savedDeath.count) saved death phrases")
+        }
+        if let savedLevelUp = UserDefaults.standard.array(forKey: "savedLevelUpPhrases") as? [String], !savedLevelUp.isEmpty {
+            levelUpPhrases = savedLevelUp
+            print("📚 Loaded \(savedLevelUp.count) saved level up phrases")
+        }
+        if let savedGameOver = UserDefaults.standard.array(forKey: "savedGameOverPhrases") as? [String], !savedGameOver.isEmpty {
+            gameOverPhrases = savedGameOver
+            print("📚 Loaded \(savedGameOver.count) saved game over phrases")
+        }
+    }
+    
+    // Save unused phrases after game session ends
+    func saveUnusedPhrases() {
+        // Save welcome phrases not used this session
+        var unusedWelcome = welcomePhrases
+        for idx in usedWelcomeIndices where idx < welcomePhrases.count {
+            // Keep used ones but will regenerate anyway
+        }
+        UserDefaults.standard.set(welcomePhrases, forKey: "savedWelcomePhrases")
+        
+        // Save death phrases not used this session
+        var unusedDeath = bossDeathPhrases
+        UserDefaults.standard.set(unusedDeath, forKey: "savedBossDeathPhrases")
+        
+        // Save level up phrases not used this session
+        UserDefaults.standard.set(levelUpPhrases, forKey: "savedLevelUpPhrases")
+        
+        // Save game over phrases not used this session
+        UserDefaults.standard.set(gameOverPhrases, forKey: "savedGameOverPhrases")
+        
+        print("💾 Saved unused phrases for next session")
+    }
     // Start screen: Insults to make player feel inferior
     var bossDeathPhrases: [String] = [
         "Your pitiful attempt ends here!",
@@ -166,20 +212,39 @@ class GameScene: SKScene {
     
     func speakBossDeath() {
         // Boss death phrase when HP reaches 0
-        let phrase = bossDeathPhrases.randomElement() ?? "You will never defeat me!"
-        speakText(phrase)
+        let availableIndices = Set(0..<bossDeathPhrases.count).subtracting(usedDeathIndices)
+        if let idx = availableIndices.randomElement() {
+            usedDeathIndices.insert(idx)
+            let phrase = bossDeathPhrases[idx]
+            speakText(phrase)
+        } else {
+            let phrase = bossDeathPhrases.randomElement() ?? "You will never defeat me!"
+            speakText(phrase)
+        }
     }
     
     func speakLevelUp() {
-        // Pick random from pre-generated phrases
-        let phrase = levelUpPhrases.randomElement() ?? "You think you can beat me?!"
-        speakText(phrase)
+        let availableIndices = Set(0..<levelUpPhrases.count).subtracting(usedLevelUpIndices)
+        if let idx = availableIndices.randomElement() {
+            usedLevelUpIndices.insert(idx)
+            let phrase = levelUpPhrases[idx]
+            speakText(phrase)
+        } else {
+            let phrase = levelUpPhrases.randomElement() ?? "You think you can beat me?!"
+            speakText(phrase)
+        }
     }
     
     func speakGameOver() {
-        // Pick random from pre-generated phrases
-        let phrase = gameOverPhrases.randomElement() ?? "I AM THE BOSS! You are NOTHING!"
-        speakText(phrase)
+        let availableIndices = Set(0..<gameOverPhrases.count).subtracting(usedGameOverIndices)
+        if let idx = availableIndices.randomElement() {
+            usedGameOverIndices.insert(idx)
+            let phrase = gameOverPhrases[idx]
+            speakText(phrase)
+        } else {
+            let phrase = gameOverPhrases.randomElement() ?? "I AM THE BOSS! You are NOTHING!"
+            speakText(phrase)
+        }
     }
     
     // MARK: - AI Chat Function
@@ -436,8 +501,11 @@ class GameScene: SKScene {
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
-        print("🤖 AI: Pre-generating 5 elaborate phrases each...")
+        print("🤖 AI: Pre-generating + recycling phrases...")
         phrasesGenerated = 0
+        
+        // First load any saved phrases from previous session
+        loadSavedPhrases()
         
         // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
@@ -501,6 +569,12 @@ class GameScene: SKScene {
     
     func goToMenuFromLoading() {
         removeAllChildren()
+        saveUnusedPhrases()  // Save for next session
+        // Reset used indices for new session
+        usedWelcomeIndices.removeAll()
+        usedDeathIndices.removeAll()
+        usedLevelUpIndices.removeAll()
+        usedGameOverIndices.removeAll()
         showMenu()
     }
     
@@ -534,8 +608,15 @@ class GameScene: SKScene {
         subtitleLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         addChild(subtitleLabel)
         
-        // AI Welcome Message (pre-generated during loading)
-        let aiMessage = SKLabelNode(text: currentWelcomePhrase)
+        // AI Welcome Message (from pool, tracking usage)
+        let availableWelcome = Set(0..<welcomePhrases.count).subtracting(usedWelcomeIndices)
+        var welcomeText = "I am waiting..."
+        if let idx = availableWelcome.randomElement() {
+            usedWelcomeIndices.insert(idx)
+            welcomeText = welcomePhrases[idx]
+        }
+        
+        let aiMessage = SKLabelNode(text: welcomeText)
         aiMessage.fontSize = 16
         aiMessage.fontColor = .gray
         aiMessage.position = CGPoint(x: size.width / 2, y: size.height - 190)
