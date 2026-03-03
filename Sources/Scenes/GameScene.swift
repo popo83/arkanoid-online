@@ -381,6 +381,28 @@ class GameScene: SKScene {
                 return
             }
             
+            // Check if response is audio or error
+            if let httpResponse = response as? HTTPURLResponse {
+                print("TTS Response status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode != 200 {
+                    // Error response - print it
+                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        print("TTS API Error: \(json)")
+                    }
+                    return
+                }
+                
+                // Check content type
+                let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
+                print("TTS Content-Type: \(contentType)")
+                
+                if !contentType.contains("audio") && data.count < 1000 {
+                    print("TTS Error: Not audio data, likely error response")
+                    return
+                }
+            }
+            
             // Play audio
             DispatchQueue.main.async {
                 self?.playAudio(data: data)
