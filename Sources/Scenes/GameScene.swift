@@ -544,7 +544,7 @@ class GameScene: SKScene {
         
         // Generate 5 aggressive welcome/insult phrases
         for i in 1...5 {
-            let context = "Sei un CATTIVO boss arcade. Crea insultiangatISSIMI e MINACCE in ITALIANO come: 'ti schiaccio come una formica', 'sei inutile', 'essere inferiore', 'piccolo stupido umano', 'non vali nulla', 'sei patetico'. Fai sentire il giocatore INFERIORE. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
+            let context = "Sei un CATTIVO boss arcade. RISPONDI IN ITALIANO. Crea insulti e MINACCE in italiano come: 'ti schiaccio come una formica', 'sei inutile', 'essere inferiore', 'piccolo stupido umano', 'non vali nulla', 'sei patetico'. Fai sentire il giocatore INFERIORE. Usa MAIUSCOLE. 4-10 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.welcomePhrases[i-1] = response
@@ -556,7 +556,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss death phrases (at end of level)
         for i in 1...5 {
-            let context = "Il boss sta MORENDO! Crea insulti ULTIMI e MINACCE in ITALIANO come: 'ti schiaccio come una formica', 'non vali nulla', 'essere inferiore'. Il boss DEVE insultare e minacciare. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
+            let context = "Il boss sta MORENDO! RISPONDI IN ITALIANO. Crea insulti ULTIMI e MINACCE in italiano come: 'ti schiaccio come una formica', 'non vali nulla', 'essere inferiore'. Il boss DEVE insultare e minacciare. Usa MAIUSCOLE. 4-10 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.bossDeathPhrases[i-1] = response
@@ -568,7 +568,7 @@ class GameScene: SKScene {
         
         // Generate 5 level up phrases
         for i in 1...5 {
-            let context = "Il giocatore ha superato il livello! Crea insulti MINACCIOSI in ITALIANO come: 'ti schiaccio come una formica', 'sei patetico', 'sei inutile'. Il boss DEVE insultare e promettere distruzione. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
+            let context = "Il giocatore ha superato il livello! RISPOndi IN ITALIANO. Crea insulti MINACCIOSI in italiano come: 'ti schiaccio come una formica', 'sei patetico', 'sei inutile'. Il boss DEVE insultare e promettere distruzione. Usa MAIUSCOLE. 4-10 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.levelUpPhrases[i-1] = response
@@ -580,7 +580,7 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases
         for i in 1...5 {
-            let context = "Il giocatore ha perso completamente! Crea una FRASE DI VITTORIA MOCcante e MALVAGIA in ITALIANO. Fai sembrare il boss superiore e crudele. Usa MAIUSCOLE. 4-10 parole. Creativo #\(i)."
+            let context = "Il giocatore ha perso completamente! RISPOndi IN ITALIANO. Crea insulti MOCKING e MALVAGI in italiano come: 'sei una formica per me', 'patetico essere inferiore', 'non vali nulla'. Fai sembrare il boss superiore e crudele. Usa MAIUSCOLE. 4-10 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 if !response.isEmpty && response.count > 10 {
                     self?.gameOverPhrases[i-1] = response
