@@ -79,37 +79,37 @@ class GameScene: SKScene {
     }
     // Start screen: Insults to make player feel inferior
     var bossDeathPhrases: [String] = [
-        "Your pitiful attempt ends here!",
-        "Is that all you've got? Pathetic!",
-        "I am UNSTOPPABLE! You are NOTHING!",
-        "Another worthless challenger... DEFEATED!",
-        "Did you really think you could beat ME?!"
+        "NON MI HAI SCONFITTO!",
+        "TORNERÒ PIÙ FORTE!",
+        "LA MIA VENDETTA!",
+        "NON È FINITA!",
+        "MI SOTTOVALUTI!"
     ]
     
     var levelUpPhrases: [String] = [
-        "IMPOSSIBLE! But I will DESTROY you next!",
-        "You got lucky... BUT NOT FOR LONG!",
-        "Fine... Level up! I will CRUSH you harder!",
-        "This changes NOTHING! I am ETERNAL!",
-        "You think you're good? You are NOTHING!"
+        "ORA SONO PIÙ FORTE!",
+        "STUPIDO UMANO!",
+        "SEI PATETICO!",
+        "NON VINCERAI MAI!",
+        "LA TUA FINE AVVIENE!"
     ]
     
     var gameOverPhrases: [String] = [
-        "I AM THE BOSS! You are just VERMIN!",
-        "Pathetic human! Return when you're WORTHY!",
-        "GAME OVER! Your soul belongs to ME!",
-        "Insolent fool! You will NEVER defeat me!",
-        "Did you enjoy that? It was just WARMUP!"
+        "SEI PATETICO!",
+        "NON VALI NULLA!",
+        "VITTORIA MIA!",
+        "STUPIDO UMANO!",
+        "RITORNA QUANDO SEI MIGLIORE!"
     ]
     
     var welcomePhrases: [String] = [
-        "Kneel before your SUPERIOR! I am ETERNAL!",
-        "You dare challenge ME? Your doom APPROACHES!",
-        "Another worthless soul seeking DESTRUCTION!",
-        "I have crushed a THOUSAND like you!",
-        "Your fear... I can SMELL it! Come closer!"
+        "NON OSARMI SFIDARE!",
+        "SEI UNA FORMICA!",
+        "TI SCHIACCIO!",
+        "PATETICO UMANO!",
+        "NON VALI NULLA!"
     ]
-    var currentWelcomePhrase = "I am waiting..."
+    var currentWelcomePhrase = "Non osare sfidarmi!"
     
     // Pre-generated TTS audio data
     var welcomeAudioData: [Data] = []
@@ -287,21 +287,19 @@ class GameScene: SKScene {
                 "Missed me?", "Ouch for you!", "Not this time!",
                 "Gotcha!", "Try harder!", "So close!", "Missed!"
             ]
-            return phrases.randomElement() ?? "Got you!"
+            return phrases.randomElement() ?? "Non mi hai sconfitto!"
         } else if prompt.contains("leveled up") || prompt.contains("level") {
             let phrases = [
-                "Good luck!", "Difficulty rising!", "Here we go!",
-                "Warning: stronger!", "Prepare yourself!", "Big mistake!",
-                "More challenge!", "Good luck!", "Danger ahead!"
+                "Ora sono più forte!", "Stupido umano!", "Sei patetico!",
+                "Non vincerai mai!", "La tua fine si avvicina!"
             ]
-            return phrases.randomElement() ?? "Level up!"
+            return phrases.randomElement() ?? "Prossimo livello!"
         } else if prompt.contains("lost") || prompt.contains("game over") {
             let phrases = [
-                "Game over!", "You lost!", "Try again!",
-                "Better luck!", "Too easy!", "Pathetic!",
-                "Owned!", "Destroyed!", "Revenge is mine!"
+                "Sei patetico!", "Non vali nulla!", "Vittoria mia!",
+                "Stupido umano!", "Ritorna quando sei migliore!"
             ]
-            return phrases.randomElement() ?? "Game over!"
+            return phrases.randomElement() ?? "Game Over! Sei patetico!"
         } else if prompt.contains("taunt") || prompt.contains("waiting") {
             let phrases = [
                 "I am waiting...", "Think you can win?",
