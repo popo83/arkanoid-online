@@ -120,21 +120,72 @@ class GameScene: SKScene {
     
     // MARK: - Voice Functions (ElevenLabs TTS)
     func speakBossHit() {
-        let phrases = ["Got you!", "Nice try!", "Missed me!", "Too slow!", "Ouch!", "Gotcha!"]
-        let phrase = phrases.randomElement() ?? "Got you!"
-        speakText(phrase)
+        // AI generates a response based on game context
+        let context = "The player just hit you. You are an evil arcade boss. Say something short and mean in 3-6 words."
+        askAI(prompt: context) { [weak self] response in
+            self?.speakWithElevenLabs(text: response)
+        }
     }
     
     func speakLevelUp() {
-        let phrases = ["Level up! Good luck!", "Warning: Boss stronger!", "Prepare yourself!", "Difficulty rising!", "Here we go!"]
-        let phrase = phrases.randomElement() ?? "Level up!"
-        speakText(phrase)
+        // AI generates a threat for level up
+        let context = "The player just leveled up. You are an evil arcade boss. Give a short ominous warning in 4-8 words."
+        askAI(prompt: context) { [weak self] response in
+            self?.speakWithElevenLabs(text: response)
+        }
     }
     
     func speakGameOver() {
-        let phrases = ["Game over!", "You lost!", "Try again!", "Better luck next time!"]
-        let phrase = phrases.randomElement() ?? "Game over!"
-        speakText(phrase)
+        // AI generates a mocking message
+        let context = "The player lost. You are an evil arcade boss. Say something mocking and short in 2-5 words."
+        askAI(prompt: context) { [weak self] response in
+            self?.speakWithElevenLabs(text: response)
+        }
+    }
+    
+    // MARK: - AI Chat Function
+    func askAI(prompt: String, completion: @escaping (String) -> Void) {
+        // Using OpenAI API
+        let apiKey = "sk-proj-..." // You'll need to provide an OpenAI key
+        
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            completion("Nice try!")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
+        let messages: [[String: Any]] = [
+            ["role": "system", "content": "You are a video game boss character. Keep responses VERY short (2-8 words max). Be menacing but fun."],
+            ["role": "user", "content": prompt]
+        ]
+        
+        let body: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": messages,
+            "max_tokens": 30,
+            "temperature": 0.8
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let message = choices.first?["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                completion("Nice try!")
+                return
+            }
+            
+            // Clean up response
+            let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            completion(cleanResponse)
+        }.resume()
     }
     
     func speakText(_ text: String) {
