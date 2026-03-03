@@ -193,12 +193,35 @@ class GameScene: SKScene {
     }
     
     func speakText(_ text: String) {
-        // Call ElevenLabs TTS directly
-        speakWithElevenLabs(text: text)
+        // Show text on screen instead of TTS
+        showBossMessage(text)
+    }
+    
+    // Show boss message on screen
+    func showBossMessage(_ text: String) {
+        // Remove existing message
+        childNode(withName: "bossMessage")?.removeFromParent()
+        
+        let message = SKLabelNode(text: text)
+        message.name = "bossMessage"
+        message.fontSize = 24
+        message.fontColor = .red
+        message.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        message.alpha = 0
+        addChild(message)
+        
+        // Animation: fade in, wait, fade out
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        let wait = SKAction.wait(forDuration: 1.5)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+        let remove = SKAction.removeFromParent()
+        
+        message.run(SKAction.sequence([fadeIn, wait, fadeOut, remove]))
     }
     
     func speakWithElevenLabs(text: String) {
-        print("🎤 TTS Request: \(text)")
+        // TTS disabled - using text instead
+        print("🎤 TTS Request (disabled): \(text)")
         
         let apiKey = "sk_787f8c73b2e0abbab6165882ef85dfa3d1826eb0bc8e9d6c"
         let voiceId = "Rachel"
