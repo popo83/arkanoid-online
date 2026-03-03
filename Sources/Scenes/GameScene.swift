@@ -72,8 +72,10 @@ class GameScene: SKScene {
     
     var musicAction: SKAction?
     var isMusicPlaying = false
+    var musicEnabled = true  // Disable for TTS testing
     
     func playBackgroundMusic() {
+        guard musicEnabled else { return }
         // If music is already playing, don't start again
         if isMusicPlaying {
             return
