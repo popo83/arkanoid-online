@@ -620,11 +620,12 @@ class GameScene: SKScene {
     
     // Generate TTS audio for all phrases during loading
     func generateAllTTSAudio() {
-        print("🎤 Generating TTS audio for all phrases...")
+        print("🎤 Starting TTS generation for 20 phrases...")
         audioGenerated = 0
         
         // Generate for welcome phrases
         for phrase in welcomePhrases {
+            print("🎤 Generating welcome: \(phrase)")
             generateTTSAudio(text: phrase) { [weak self] data in
                 if let data = data {
                     self?.welcomeAudioData.append(data)
