@@ -470,8 +470,8 @@ class GameScene: SKScene {
         // Load total play time
         totalPlayTime = UserDefaults.standard.double(forKey: "totalPlayTime")
         
-        // Go directly to menu (loading screen disabled for now)
-        showMenu()
+        // Mostra la schermata di loading (3s) prima del menu
+        showLoadingScreen()
     }
     
     func showLoadingScreen() {
@@ -527,7 +527,7 @@ class GameScene: SKScene {
         // Start AI phrase generation + TTS
         preGeneratePhrases()
         
-        // Backup: after 3 seconds, go to menu anyway
+        // Timeout: dopo 3 secondi vai comunque al menu
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             if self?.gameState == "loading" {
                 self?.goToMenuFromLoading()
