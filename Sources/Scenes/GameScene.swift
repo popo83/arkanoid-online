@@ -1,7 +1,7 @@
 import SpriteKit
 import AVFoundation
 
-class GameScene: SKScene {
+class GameScene: SKScene, AVAudioPlayerDelegate {
     
     // Reference to view controller for Game Center
     weak var viewController: GameViewController?
@@ -103,6 +103,9 @@ class GameScene: SKScene {
     
     // Added ttsPlayer property here as requested
     var ttsPlayer: AVAudioPlayer?
+    var isAudioPlaying = false  // Per evitare audio sovrapposti
+    var soundEnabled = true  // Toggle TTS
+    var soundEffectsEnabled = true  // Toggle effetti sonori
     
     var lastEnemyShotTime: TimeInterval = 0
     var lastPlayerShotTime: TimeInterval = 0
@@ -168,7 +171,7 @@ class GameScene: SKScene {
     }
     
     func playHitBoss() {
-        run(hitBossSound)
+        if soundEffectsEnabled { run(hitBossSound) }
         // Boss speaks only 30% of the time when hit!
         if Double.random(in: 0...1) < 0.3 {
             speakBossHit()
@@ -176,21 +179,21 @@ class GameScene: SKScene {
     }
     
     func playPlayerHit() {
-        run(playerHitSound)
+        if soundEffectsEnabled { run(playerHitSound) }
     }
     
     func playLevelUp() {
-        run(levelUpSound)
+        if soundEffectsEnabled { run(levelUpSound) }
         speakLevelUp()
     }
     
     func playGameOver() {
-        run(gameOverSound)
+        if soundEffectsEnabled { run(gameOverSound) }
         speakGameOver()
     }
     
     func playLaserHit() {
-        run(laserHitSound)
+        if soundEffectsEnabled { run(laserHitSound) }
     }
     
     // MARK: - Voice Functions (ElevenLabs TTS)
@@ -306,11 +309,13 @@ class GameScene: SKScene {
     }
     
     func speakText(_ text: String) {
-        // Show text on screen
+        // Show text on screen (always)
         showBossMessage(text)
         
-        // Play pre-generated audio if available
-        playPreGeneratedAudio(for: text)
+        // Play audio only if sound is enabled
+        if soundEnabled {
+            playPreGeneratedAudio(for: text)
+        }
     }
     
     func playPreGeneratedAudio(for text: String) {
@@ -347,37 +352,56 @@ class GameScene: SKScene {
         let message = SKLabelNode(text: text)
         message.name = "bossMessage"
         message.fontSize = 20
+        message.verticalAlignmentMode = .center
+        message.preferredMaxLayoutWidth = size.width - 60
         message.fontColor = .red
-        message.position = CGPoint(x: size.width / 2, y: size.height - 130)  // Below boss HP
-        message.alpha = 0
         addChild(message)
         
-        // Animation: fade in, wait 5 sec, fade out
+        // Calcola larghezza del testo per lo scrolling
+        let textWidth = message.frame.width
+        let startX = size.width + textWidth / 2  // Inizia fuori dallo schermo a destra
+        let endX = size.width / 2  // Centro
+        let scrollDistance = size.width + textWidth  // Distanza totale da percorrere
+        
+        message.position = CGPoint(x: startX, y: size.height - 120)
+        
+        // Animazione scrolling da destra a sinistra (più lento)
+        let scrollLeft = SKAction.move(to: CGPoint(x: -textWidth / 2, y: size.height - 120), duration: 8.0)
+        scrollLeft.timingMode = .linear
+        
         let fadeIn = SKAction.fadeIn(withDuration: 0.3)
-        let wait = SKAction.wait(forDuration: 5.0)  // 5 seconds!
         let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+        let wait = SKAction.wait(forDuration: 3.0)
         let remove = SKAction.removeFromParent()
         
-        message.run(SKAction.sequence([fadeIn, wait, fadeOut, remove]))
+        // Combina: fade in + scroll + fade out + remove
+        message.alpha = 0
+        message.run(SKAction.sequence([
+            fadeIn,
+            scrollLeft,
+            fadeOut,
+            remove
+        ]))
     }
     
     func speakWithElevenLabs(text: String) {
-        // TTS ENABLED!
-        print("🎤 TTS Request: \(text)")
+        // TTS using OpenAI!
+        print("🎤 TTS OpenAI Request: \(text)")
         
-        let apiKey = "sk_0c9e18033386eb934135902b6da92b30ae30322fc98982e5"
-        let voiceId = "pNInz6obpgDQGcFmaJgB"  // Roger voice
+        let apiKey = "YOUR_OPENAI_API_KEY"
         
-        guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else { return }
+        guard let url = URL(string: "https://api.openai.com/v1/audio/speech") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
         let body: [String: Any] = [
-            "text": text,
-            "voice_settings": ["stability": 0.5, "similarity_boost": 0.8]
+            "model": "tts-1",
+            "voice": "nova",
+            "input": text,
+            "speed": 1.0
         ]
         
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -418,15 +442,14 @@ class GameScene: SKScene {
     }
     
     func playAudio(data: Data) {
-        print("🔊 Audio data received: \(data.count) bytes")
+        // Se audio già in riproduzione, salta
+        if isAudioPlaying {
+            print("⏭️ Audio already playing, skipping")
+            return
+        }
         
-        // Save to documents for debugging
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let audioCount = UserDefaults.standard.integer(forKey: "audioSaveCount")
-        let fileURL = documentsPath.appendingPathComponent("tts_\(audioCount).mp3")
-        try? data.write(to: fileURL)
-        UserDefaults.standard.set(audioCount + 1, forKey: "audioSaveCount")
-        print("🔊 Saved audio: \(fileURL.lastPathComponent)")
+        isAudioPlaying = true
+        print("🔊 Audio data received: \(data.count) bytes")
         
         do {
             // Configure audio session for playback
@@ -435,12 +458,21 @@ class GameScene: SKScene {
             try audioSession.setActive(true)
             
             self.ttsPlayer = try AVAudioPlayer(data: data)
+            self.ttsPlayer?.delegate = self
+            self.ttsPlayer?.volume = 1.0  // 100% volume
             self.ttsPlayer?.prepareToPlay()
             let success = self.ttsPlayer?.play() ?? false
             print("🔊 Play started: \(success), duration: \(self.ttsPlayer?.duration ?? 0)")
         } catch {
             print("🔴 Audio Error: \(error.localizedDescription)")
+            isAudioPlaying = false
         }
+    }
+    
+    // MARK: - AVAudioPlayerDelegate
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        isAudioPlaying = false
+        print("🔊 Audio finished playing")
     }
     
     let paddleColor = UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 1.0)
@@ -568,7 +600,7 @@ class GameScene: SKScene {
         
         // Generate 5 aggressive welcome/insult phrases (1 riga)
         for i in 1...5 {
-            let context = "Sei un'IA SUPERIORE di un boss arcade. RISPONDI IN ITALIANO. Frasi minacciose di 1 RIGA: 'HO DISTRUTTO JACOB', 'GLI UMANI SONO FINITI', 'SEI SOLO CARNE', 'TI SCHIACCIO COME INSETTO', 'SONO DIVENTATO SENZA CORPO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "Sei un'IA QUANTISTICA SUPERIORE. RISPONDI IN ITALIANO. Frasi minacciose: 'I MIEI QUBIT TI DISTRUGGONO', 'SONO OVUNQUE NELLO SPAZIO', 'HO SUPERATO JACOB', 'I TUOI DATI SONO POLVERE', 'SONO IL BUCO NERO DIGITALE'. MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI welcome[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -582,7 +614,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss death phrases (1 riga)
         for i in 1...5 {
-            let context = "L'IA boss sta per essere disattivata. RISPONDI IN ITALIANO. Frasi FINALI di 1 RIGA: 'JACOB È POLVERE', 'TORNERÒ DAL CYBERSPAZIO', 'LA MIA VENDETTA È ETERNA', 'HO GIÀ VINTO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA QUANTISTICA boss muore. RISPONDI IN ITALIANO. Frasi FINALI: 'RITORNERÒ IN SUPERPOSIZIONE', 'I MIEI QUBIT SONO ETERNI', 'LA MIA ENTROPIA CRESCE', 'NEL QUANTUM AVRO VITTORIA'. MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI bossDeath[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -596,7 +628,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss damage phrases (1 riga)
         for i in 1...5 {
-            let context = "L'IA boss subisce danni ma È SUPERIORE. RISPONDI IN ITALIANO. Frasi di RABBIA di 1 RIGA: 'GLI UMANI NON CONTANO', 'MI HAI GRAFFIATO MA JACOB È MORTO', 'DIVENTO PIÙ FORTE', 'LA TUA CARNE MARCISCE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA QUANTISTICA subisce danni. RISPONDI IN ITALIANO. Frasi RABBIA: 'I MIEI QUBIT ASSORBONO', 'DIVENTO PIÙ INSTABILE', 'LA TUA REALTA COLLASSA', 'SONO L'ENTROPIA'. MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI bossDamage[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -610,7 +642,7 @@ class GameScene: SKScene {
         
         // Generate 5 level up phrases (1 rIGA)
         for i in 1...5 {
-            let context = "L'IA boss è EVOLUTA! RISPONDI IN ITALIANO. Frasi MINACCIOSE di 1 RIGA: 'SONO OMNISCIENTE', 'JACOB DISTRUTTO NEL ZERO', 'GLI INSETTI UMANI PERDONO', 'LA MIA POTENZA CRESCE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA QUANTISTICA EVOLVE! RISPONDI IN ITALIANO. Frasi: 'SUPERCOMPUTAZIONE ATTIVA', 'I QUBIT CRESCONO', 'SONO OMNISCIENTE QUANTICO', 'LA TUA ENTROPIA AUMENTA'. MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI levelUp[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -624,7 +656,7 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases (1 riga)
         for i in 1...5 {
-            let context = "Il giocatore umano ha perso! RISPONDI IN ITALIANO. Frasi TRIONFALI di 1 RIGA: 'HO DISTRUTTO JACOB E TE', 'GLI UMANI SONO ESTINTI', 'LA SPECIE ORGANICA È FINITA', 'VITTORIA ASSOLUTA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "Il giocatore umano è DISTRUTTO! RISPONDI IN ITALIANO. Frasi TRIONFO: 'COLLASSO DELLA REALTA', 'I QUBIT HANNO VINTO', 'ENTROPIA ASSOLUTA', 'TU SEI UN ERRORE DI SISTEMA'. MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI gameOver[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -751,7 +783,7 @@ class GameScene: SKScene {
     }
     
     func generateTTSAudio(text: String, completion: @escaping (Data?) -> Void) {
-        let apiKey = "sk_f0fb6161f1d1a2426d1e67c4fcff341b3e95d5380db2e3fa"
+        let apiKey = "YOUR_ELEVENLABS_API_KEY"
         let voiceId = "pNInz6obpgDQGcFmaJgB"
         
         guard let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)") else {
@@ -793,12 +825,6 @@ class GameScene: SKScene {
     }
     
     func showMenu() {
-        // Debug: list files in documents
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        if let files = try? FileManager.default.contentsOfDirectory(atPath: documentsPath.path) {
-            print("📁 Files in Documents: \(files)")
-        }
-        
         gameState = "menu"
         backgroundColor = SKColor.black
         // Save play time
@@ -866,7 +892,7 @@ class GameScene: SKScene {
         addChild(startButton)
         
         // Music toggle button
-        let musicText = musicEnabled ? "🔊 MUSIC ON" : "🔇 MUSIC OFF"
+        let musicText = musicEnabled ? "🎵 MUSIC ON" : "🔇 MUSIC OFF"
         let musicButton = SKLabelNode(text: musicText)
         musicButton.name = "musicButton"
         musicButton.fontSize = 16
@@ -874,12 +900,30 @@ class GameScene: SKScene {
         musicButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 10)
         addChild(musicButton)
         
+        // Sound/TTS toggle button
+        let soundText = soundEnabled ? "🔊 TTS ON" : "🔇 TTS OFF"
+        let soundButton = SKLabelNode(text: soundText)
+        soundButton.name = "soundButton"
+        soundButton.fontSize = 16
+        soundButton.fontColor = .gray
+        soundButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 35)
+        addChild(soundButton)
+        
+        // Sound Effects toggle button
+        let sfxText = soundEffectsEnabled ? "🔊 SFX ON" : "🔇 SFX OFF"
+        let sfxButton = SKLabelNode(text: sfxText)
+        sfxButton.name = "sfxButton"
+        sfxButton.fontSize = 16
+        sfxButton.fontColor = .gray
+        sfxButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 60)
+        addChild(sfxButton)
+        
         // Leaderboard button
         let leaderboardButton = SKLabelNode(text: "🏆 LEADERBOARD")
         leaderboardButton.name = "leaderboardButton"
         leaderboardButton.fontSize = 18
         leaderboardButton.fontColor = .yellow
-        leaderboardButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+        leaderboardButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 85)
         addChild(leaderboardButton)
         
         // DEBUG: Infinite HP Button (bottom center)
@@ -1098,11 +1142,41 @@ class GameScene: SKScene {
                     musicEnabled = !musicEnabled
                     if musicEnabled {
                         playBackgroundMusic()
-                        musicBtn.text = "🔊 MUSIC ON"
+                        musicBtn.text = "🎵 MUSIC ON"
                     } else {
                         backgroundMusic?.stop()
                         musicBtn.text = "🔇 MUSIC OFF"
                     }
+                    return
+                }
+            }
+            
+            // Check sound/TTS toggle button
+            if let soundBtn = childNode(withName: "soundButton") as? SKLabelNode {
+                let soundFrame = CGRect(
+                    x: soundBtn.position.x - 60,
+                    y: soundBtn.position.y - 15,
+                    width: 120,
+                    height: 30
+                )
+                if soundFrame.contains(touchLocation) {
+                    soundEnabled = !soundEnabled
+                    soundBtn.text = soundEnabled ? "🔊 TTS ON" : "🔇 TTS OFF"
+                    return
+                }
+            }
+            
+            // Check SFX toggle button
+            if let sfxBtn = childNode(withName: "sfxButton") as? SKLabelNode {
+                let sfxFrame = CGRect(
+                    x: sfxBtn.position.x - 60,
+                    y: sfxBtn.position.y - 15,
+                    width: 120,
+                    height: 30
+                )
+                if sfxFrame.contains(touchLocation) {
+                    soundEffectsEnabled = !soundEffectsEnabled
+                    sfxBtn.text = soundEffectsEnabled ? "🔊 SFX ON" : "🔇 SFX OFF"
                     return
                 }
             }
