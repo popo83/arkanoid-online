@@ -38,6 +38,8 @@ class GameScene: SKScene {
     var usedLevelUpIndices: Set<Int> = []
     var usedGameOverIndices: Set<Int> = []
     
+    var lastBossHpSpeech: Int = 10  // Per tracciare HP ultima frase boss
+    
     // Load saved unused phrases from previous session
     func loadSavedPhrases() {
         if let savedWelcome = UserDefaults.standard.array(forKey: "savedWelcomePhrases") as? [String], !savedWelcome.isEmpty {
@@ -79,47 +81,26 @@ class GameScene: SKScene {
         
         print("💾 Saved unused phrases for next session")
     }
-    // Start screen: frasi più lunghe (2 righe)
-    var bossDeathPhrases: [String] = [
-        "NON MI HAI SCONFITTO, SOLO FERITO\nTORNERÒ A DISTRUGGERTI.",
-        "TORNERÒ PIÙ FORTE E PIÙ FURIOSO\nQUESTA È SOLO UNA PAUSA.",
-        "LA MIA VENDETTA SARÀ DEVASTANTE\nPREGA FINCHÉ PUOI.",
-        "NON È FINITA, È SOLO L’INIZIO\nDEL TUO INCUBO INFINITO.",
-        "MI SOTTOVALUTI, E QUESTO TI UCCIDERÀ\nIO SONO ETERNO."
-    ]
+    // Pre-caricate come placeholder di errore (sovrascritte da AI). In caso di mancanza, mostrano errore.
+    var bossDeathPhrases: [String] = Array(repeating: "ERRORE: frase bossDeath mancante (AI)", count: 5)
     
-    var levelUpPhrases: [String] = [
-        "ORA SONO PIÙ FORTE, PIÙ VELOCE\nPREPARATI A SOFFRIRE DI PIÙ.",
-        "STUPIDO UMANO, HAI SOLO PEGGIORATO LE COSE\nIO AUMENTO, TU CROLLI.",
-        "SEI PATETICO, IO DIVENTO INARRESTABILE\nOGNI TUO PASSO È LA TUA FINE.",
-        "NON VINCERAI MAI, IO CRESCO OGNI SECONDO\nLA TUA FOLLIA SARÀ LA TUA ROVINA.",
-        "LA TUA FINE SI AVVICINA A OGNI LIVELLO\nIO SARÒ IL TUO BOIA."
-    ]
+    var bossDamagePhrases: [String] = Array(repeating: "ERRORE: frase bossDamage mancante (AI)", count: 5)
     
-    var gameOverPhrases: [String] = [
-        "SEI PATETICO, HO VINTO ANCORA\nRITORNA SOLO PER ESSERE UMILIATO.",
-        "NON VALI NULLA, LA TUA ANIMA È MIA\nIL TUO DOLORE È SOLO ALL’INIZIO.",
-        "VITTORIA MIA, TU SEI CENERE\nIL TUO DESTINO È ESSERE DIMENTICATO.",
-        "STUPIDO UMANO, IMPARA LA LEZIONE\nIO DOMINO, TU OBBEDISCI.",
-        "RITORNA QUANDO SEI MIGLIORE...\nMA NON LO SARAI MAI."
-    ]
+    var levelUpPhrases: [String] = Array(repeating: "ERRORE: frase levelUp mancante (AI)", count: 5)
     
-    var welcomePhrases: [String] = [
-        "NON OSARE SFIDARMI, INSETTO!\nTI DISTRUGGERÒ LENTAMENTE.",
-        "SEI UNA FORMICA NEL MIO REGNO\nE IO TI SCHIACCERÒ SENZA PIETÀ.",
-        "TI SCHIACCIO, TI SPEZZO, TI UMILIO\nDAVANTI A TUTTO IL MIO ESERCITO.",
-        "PATETICO UMANO, IL TUO DESTINO È DECISO\nSARAI POLVERE SOTTO I MIEI PIEDI.",
-        "NON VALI NULLA, RASSEGNATI\nIO SONO IL TUO INCUBO PEGGIORE."
-    ]
-    var currentWelcomePhrase = "Non osare sfidarmi!"
+    var gameOverPhrases: [String] = Array(repeating: "ERRORE: frase gameOver mancante (AI)", count: 5)
+    
+    var welcomePhrases: [String] = Array(repeating: "ERRORE: frase welcome mancante (AI)", count: 5)
+    var currentWelcomePhrase = "ERRORE: frase welcome mancante (AI)"
     
     // Pre-generated TTS audio data
     var welcomeAudioData: [Data] = []
     var bossDeathAudioData: [Data] = []
+    var bossDamageAudioData: [Data] = []
     var levelUpAudioData: [Data] = []
     var gameOverAudioData: [Data] = []
     var audioGenerated = 0
-    let totalAudioToGenerate = 20
+    let totalAudioToGenerate = 25
     
     var infiniteHP = false
     var gameState = "menu" // menu, playing, gameover
@@ -229,6 +210,11 @@ class GameScene: SKScene {
         speakText(phrase)
     }
     
+    func speakBossDamage() {
+        let phrase = bossDamagePhrases.randomElement() ?? "Mi hai solo graffiato, insetto!"
+        speakText(phrase)
+    }
+    
     func speakLevelUp() {
         // Random each time!
         let phrase = levelUpPhrases.randomElement() ?? "Prossimo livello... sarà peggiore!"
@@ -243,10 +229,10 @@ class GameScene: SKScene {
     
     // MARK: - AI Chat Function
     func askAI(prompt: String, completion: @escaping (String) -> Void) {
-        // Using MiniMax API
-        let apiKey = "sk-api-BCuvsVmF1GkihtiPIIyJTMFyrsKOR_KkuweQtpqmW48pmVJdSItEGTwa_wGm4czp0fqt9d_oI0wsKXa-e7JPnDicbEsY88CmDeZ14Gu7UT13lUv2TFjRLRw"
+        // Using OpenAI API for text generation
+        let apiKey = "YOUR_OPENAI_API_KEY"
         
-        guard let url = URL(string: "https://api.minimax.chat/v1/text/chatcompletion_v2?GroupId=123456789") else {
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
             completion(getSmartPhrase(for: prompt))
             return
         }
@@ -254,33 +240,39 @@ class GameScene: SKScene {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
         let messages: [[String: Any]] = [
-            ["role": "system", "content": "You are a video game boss. Keep responses VERY short (2-6 words). Be menacing."],
+            ["role": "system", "content": "You are a video game boss. Keep responses VERY short (2-6 words). Be menacing. RESPOND IN ITALIANO."],
             ["role": "user", "content": prompt]
         ]
         
         let body: [String: Any] = [
-            "model": "abab6.5s-chat",
+            "model": "gpt-4o-mini",
             "messages": messages,
-            "max_tokens": 50,
-            "temperature": 0.7
+            "max_tokens": 100,
+            "temperature": 0.8
         ]
         
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let data = data, let jsonString = String(data: data, encoding: .utf8) {
+                print("🔍 OpenAI raw response: \(jsonString)")
+            }
+            
             guard let data = data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let choices = json["choices"] as? [[String: Any]],
                   let message = choices.first?["message"] as? [String: Any],
                   let content = message["content"] as? String else {
+                print("❌ OpenAI API failed, using fallback")
                 completion(self?.getSmartPhrase(for: prompt) ?? "Got you!")
                 return
             }
             
             let cleanResponse = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("✅ OpenAI response: \(cleanResponse)")
             completion(cleanResponse)
         }.resume()
     }
@@ -334,6 +326,8 @@ class GameScene: SKScene {
             audioData = welcomeAudioData[idx]
         } else if let idx = bossDeathPhrases.firstIndex(of: text), idx < bossDeathAudioData.count {
             audioData = bossDeathAudioData[idx]
+        } else if let idx = bossDamagePhrases.firstIndex(of: text), idx < bossDamageAudioData.count {
+            audioData = bossDamageAudioData[idx]
         } else if let idx = levelUpPhrases.firstIndex(of: text), idx < levelUpAudioData.count {
             audioData = levelUpAudioData[idx]
         } else if let idx = gameOverPhrases.firstIndex(of: text), idx < gameOverAudioData.count {
@@ -537,7 +531,7 @@ class GameScene: SKScene {
     
     // Pre-generated AI phrases counter
     var phrasesGenerated = 0
-    let totalPhrases = 20  // 5 phrases x 4 categories
+    let totalPhrases = 25  // 5 phrases x 5 categories
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
@@ -546,48 +540,70 @@ class GameScene: SKScene {
         
         // Generate fresh phrases each time
         
-        // Generate 5 aggressive welcome/insult phrases
+        // Generate 5 aggressive welcome/insult phrases (1 riga)
         for i in 1...5 {
-            let context = "Sei un CATTIVO boss arcade. RISPONDI IN ITALIANO. Crea insulti e MINACCE in italiano come: 'ti schiaccio come una formica', 'sei inutile', 'essere inferiore', 'piccolo stupido umano', 'non vali nulla', 'sei patetico'. Fai sentire il giocatore INFERIORE. Usa MAIUSCOLE. 4-10 parole. #\(i)."
+            let context = "Sei un CATTIVO boss arcade. RISPONDI IN ITALIANO. Crea insulti e MINACCE in italiano di 1 SOLA RIGA come: 'NON VALI NULLA', 'SEI PATETICO', 'NON OSARE SFIDARMI'. Fai sentire il giocatore INFERIORE. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty && response.count > 10 {
+                print("🤖 AI welcome[\(i)] response: \(response)")
+                if !response.isEmpty {
                     self?.welcomePhrases[i-1] = response
+                    print("✅ Saved welcome[\(i)]: \(response)")
                 }
                 self?.phrasesGenerated += 1
                 self?.checkPhrasesReady()
             }
         }
         
-        // Generate 5 boss death phrases (at end of level)
+        // Generate 5 boss death phrases (1 riga)
         for i in 1...5 {
-            let context = "Il boss sta MORENDO! RISPONDI IN ITALIANO. Crea insulti ULTIMI e MINACCE in italiano come: 'ti schiaccio come una formica', 'non vali nulla', 'essere inferiore'. Il boss DEVE insultare e minacciare. Usa MAIUSCOLE. 4-10 parole. #\(i)."
+            let context = "Il boss sta MORENDO! RISPONDI IN ITALIANO. Crea insulti ULTIMI e MINACCE di 1 SOLA RIGA come: 'NON MI HAI SCONFITTO', 'TORNERÒ PIÙ FORTE', 'LA MIA VENDETTA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty && response.count > 10 {
+                print("🤖 AI bossDeath[\(i)] response: \(response)")
+                if !response.isEmpty {
                     self?.bossDeathPhrases[i-1] = response
+                    print("✅ Saved bossDeath[\(i)]: \(response)")
                 }
                 self?.phrasesGenerated += 1
                 self?.checkPhrasesReady()
             }
         }
         
-        // Generate 5 level up phrases
+        // Generate 5 boss damage phrases (1 riga)
         for i in 1...5 {
-            let context = "Il giocatore ha superato il livello! RISPOndi IN ITALIANO. Crea insulti MINACCIOSI in italiano come: 'ti schiaccio come una formica', 'sei patetico', 'sei inutile'. Il boss DEVE insultare e promettere distruzione. Usa MAIUSCOLE. 4-10 parole. #\(i)."
+            let context = "Il boss STA SOFFRENDO (HP -5)! RISPONDI IN ITALIANO. Crea insulti e RABBIA di 1 SOLA RIGA come: 'MI HAI SOLO GRAFFIATO', 'DIVENTO PIÙ FEROCE', 'SANGUINO MA VINCO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty && response.count > 10 {
+                print("🤖 AI bossDamage[\(i)] response: \(response)")
+                if !response.isEmpty {
+                    self?.bossDamagePhrases[i-1] = response
+                    print("✅ Saved bossDamage[\(i)]: \(response)")
+                }
+                self?.phrasesGenerated += 1
+                self?.checkPhrasesReady()
+            }
+        }
+        
+        // Generate 5 level up phrases (1 riga)
+        for i in 1...5 {
+            let context = "Il giocatore ha superato il livello! RISPOndi IN ITALIANO. Crea insulti MINACCIOSI di 1 SOLA RIGA come: 'ORA SONO PIÙ FORTE', 'SEI PATETICO', 'LA TUA FINE ARRIVA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            askAI(prompt: context) { [weak self] response in
+                print("🤖 AI levelUp[\(i)] response: \(response)")
+                if !response.isEmpty {
                     self?.levelUpPhrases[i-1] = response
+                    print("✅ Saved levelUp[\(i)]: \(response)")
                 }
                 self?.phrasesGenerated += 1
                 self?.checkPhrasesReady()
             }
         }
         
-        // Generate 5 game over phrases
+        // Generate 5 game over phrases (1 riga)
         for i in 1...5 {
-            let context = "Il giocatore ha perso completamente! RISPOndi IN ITALIANO. Crea insulti MOCKING e MALVAGI in italiano come: 'sei una formica per me', 'patetico essere inferiore', 'non vali nulla'. Fai sembrare il boss superiore e crudele. Usa MAIUSCOLE. 4-10 parole. #\(i)."
+            let context = "Il giocatore ha perso completamente! RISPOndi IN ITALIANO. Crea insulti MOCKING e MALVAGI di 1 SOLA RIGA come: 'SEI PATETICO', 'NON VALI NULLA', 'RITORNA QUANDO SEI MIGLIORE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
-                if !response.isEmpty && response.count > 10 {
+                print("🤖 AI gameOver[\(i)] response: \(response)")
+                if !response.isEmpty {
                     self?.gameOverPhrases[i-1] = response
+                    print("✅ Saved gameOver[\(i)]: \(response)")
                 }
                 self?.phrasesGenerated += 1
                 self?.checkPhrasesReady()
@@ -627,6 +643,17 @@ class GameScene: SKScene {
             generateTTSAudio(text: phrase) { [weak self] data in
                 if let data = data {
                     self?.bossDeathAudioData.append(data)
+                }
+                self?.audioGenerated += 1
+                self?.checkAudioReady()
+            }
+        }
+        
+        // Generate for boss damage phrases
+        for phrase in bossDamagePhrases {
+            generateTTSAudio(text: phrase) { [weak self] data in
+                if let data = data {
+                    self?.bossDamageAudioData.append(data)
                 }
                 self?.audioGenerated += 1
                 self?.checkAudioReady()
@@ -1379,8 +1406,15 @@ class GameScene: SKScene {
                 
                 if bossHP <= 0 {
                     speakBossDeath()  // Boss insult before dying!
+                    clearAllLasers()
                     winGame()
                     return
+                }
+                
+                // Boss parla ogni 5 HP persi
+                if bossHP % 5 == 0 && bossHP != lastBossHpSpeech {
+                    lastBossHpSpeech = bossHP
+                    speakBossDamage()
                 }
                 continue
             }
