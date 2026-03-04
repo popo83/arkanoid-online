@@ -1306,8 +1306,9 @@ class GameScene: SKScene {
             }
         }
         
-        // Ball passes boss - YOU WIN!
+        // Ball passes boss - YOU WIN! (ripulisci i laser)
         if ball.position.y > boss.position.y + 30 {
+            clearAllLasers()
             winGame()
             return
         }
