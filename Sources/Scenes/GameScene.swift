@@ -42,6 +42,7 @@ class GameScene: SKScene {
     
     // Load saved unused phrases from previous session
     func loadSavedPhrases() {
+        // Load saved phrases FIRST before generating new ones
         if let savedWelcome = UserDefaults.standard.array(forKey: "savedWelcomePhrases") as? [String], !savedWelcome.isEmpty {
             welcomePhrases = savedWelcome
             print("📚 Loaded \(savedWelcome.count) saved welcome phrases")
@@ -49,6 +50,10 @@ class GameScene: SKScene {
         if let savedDeath = UserDefaults.standard.array(forKey: "savedBossDeathPhrases") as? [String], !savedDeath.isEmpty {
             bossDeathPhrases = savedDeath
             print("📚 Loaded \(savedDeath.count) saved death phrases")
+        }
+        if let savedDamage = UserDefaults.standard.array(forKey: "savedBossDamagePhrases") as? [String], !savedDamage.isEmpty {
+            bossDamagePhrases = savedDamage
+            print("📚 Loaded \(savedDamage.count) saved boss damage phrases")
         }
         if let savedLevelUp = UserDefaults.standard.array(forKey: "savedLevelUpPhrases") as? [String], !savedLevelUp.isEmpty {
             levelUpPhrases = savedLevelUp
@@ -60,26 +65,16 @@ class GameScene: SKScene {
         }
     }
     
-    // Save unused phrases after game session ends
+    // Save all phrases after game session ends (riciclo!)
     func saveUnusedPhrases() {
-        // Save welcome phrases not used this session
-        var unusedWelcome = welcomePhrases
-        for idx in usedWelcomeIndices where idx < welcomePhrases.count {
-            // Keep used ones but will regenerate anyway
-        }
+        // Salva tutte le frasi generate per riciclarle al prossimo avvio
         UserDefaults.standard.set(welcomePhrases, forKey: "savedWelcomePhrases")
-        
-        // Save death phrases not used this session
-        var unusedDeath = bossDeathPhrases
-        UserDefaults.standard.set(unusedDeath, forKey: "savedBossDeathPhrases")
-        
-        // Save level up phrases not used this session
+        UserDefaults.standard.set(bossDeathPhrases, forKey: "savedBossDeathPhrases")
+        UserDefaults.standard.set(bossDamagePhrases, forKey: "savedBossDamagePhrases")
         UserDefaults.standard.set(levelUpPhrases, forKey: "savedLevelUpPhrases")
-        
-        // Save game over phrases not used this session
         UserDefaults.standard.set(gameOverPhrases, forKey: "savedGameOverPhrases")
         
-        print("💾 Saved unused phrases for next session")
+        print("💾 Saved all phrases for recycling: welcome=\(welcomePhrases.count), death=\(bossDeathPhrases.count), damage=\(bossDamagePhrases.count), levelUp=\(levelUpPhrases.count), gameOver=\(gameOverPhrases.count)")
     }
     // Pre-caricate come placeholder di errore (sovrascritte da AI). In caso di mancanza, mostrano errore.
     var bossDeathPhrases: [String] = Array(repeating: "ERRORE: frase bossDeath mancante (AI)", count: 5)
@@ -520,13 +515,6 @@ class GameScene: SKScene {
         
         // Start AI phrase generation + TTS
         preGeneratePhrases()
-        
-        // Timeout: dopo 3 secondi vai comunque al menu
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-            if self?.gameState == "loading" {
-                self?.goToMenuFromLoading()
-            }
-        }
     }
     
     // Pre-generated AI phrases counter
@@ -535,14 +523,52 @@ class GameScene: SKScene {
     
     // Pre-generate AI phrases for the game session
     func preGeneratePhrases() {
-        print("🤖 AI: Pre-generating + recycling phrases...")
+        // Prima carica le frasi salvate (riciclo!)
+        loadSavedPhrases()
+        
+        // Verifica se le frasi sono valide (non placeholder errore)
+        let hasValidWelcome = welcomePhrases.first?.contains("ERRORE") == false
+        let hasValidDeath = bossDeathPhrases.first?.contains("ERRORE") == false
+        let hasValidDamage = bossDamagePhrases.first?.contains("ERRORE") == false
+        let hasValidLevelUp = levelUpPhrases.first?.contains("ERRORE") == false
+        let hasValidGameOver = gameOverPhrases.first?.contains("ERRORE") == false
+        
+        // Se abbiamo frasi valide salvate, genera NUOVE frasi mescolando con le vecchie
+        // Così ogni avvio ha frasi fresche ma anche riciclo parziale
+        if hasValidWelcome && hasValidDeath && hasValidDamage && hasValidLevelUp && hasValidGameOver {
+            print("♻️ Have saved phrases - will generate 3 NEW + keep 2 OLD per category")
+            // Tiene traccia delle vecchie frasi da conservare
+            let oldWelcome = Array(welcomePhrases.suffix(2))
+            let oldDeath = Array(bossDeathPhrases.suffix(2))
+            let oldDamage = Array(bossDamagePhrases.suffix(2))
+            let oldLevelUp = Array(levelUpPhrases.suffix(2))
+            let oldGameOver = Array(gameOverPhrases.suffix(2))
+            
+            // Salva per uso dopo generazione
+            UserDefaults.standard.set(oldWelcome, forKey: "tempOldWelcome")
+            UserDefaults.standard.set(oldDeath, forKey: "tempOldDeath")
+            UserDefaults.standard.set(oldDamage, forKey: "tempOldDamage")
+            UserDefaults.standard.set(oldLevelUp, forKey: "tempOldLevelUp")
+            UserDefaults.standard.set(oldGameOver, forKey: "tempOldGameOver")
+            
+            // Prepara array vuoti per nuova generazione
+            welcomePhrases = Array(repeating: "", count: 5)
+            bossDeathPhrases = Array(repeating: "", count: 5)
+            bossDamagePhrases = Array(repeating: "", count: 5)
+            levelUpPhrases = Array(repeating: "", count: 5)
+            gameOverPhrases = Array(repeating: "", count: 5)
+        } else {
+            print("🤖 No valid saved phrases - generating all new!")
+        }
+        
+        print("🤖 AI: Generating new phrases (no valid saved phrases found)...")
         phrasesGenerated = 0
         
         // Generate fresh phrases each time
         
         // Generate 5 aggressive welcome/insult phrases (1 riga)
         for i in 1...5 {
-            let context = "Sei un CATTIVO boss arcade. RISPONDI IN ITALIANO. Crea insulti e MINACCE in italiano di 1 SOLA RIGA come: 'NON VALI NULLA', 'SEI PATETICO', 'NON OSARE SFIDARMI'. Fai sentire il giocatore INFERIORE. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "Sei un'IA SUPERIORE di un boss arcade. RISPONDI IN ITALIANO. Frasi minacciose di 1 RIGA: 'HO DISTRUTTO JACOB', 'GLI UMANI SONO FINITI', 'SEI SOLO CARNE', 'TI SCHIACCIO COME INSETTO', 'SONO DIVENTATO SENZA CORPO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI welcome[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -556,7 +582,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss death phrases (1 riga)
         for i in 1...5 {
-            let context = "Il boss sta MORENDO! RISPONDI IN ITALIANO. Crea insulti ULTIMI e MINACCE di 1 SOLA RIGA come: 'NON MI HAI SCONFITTO', 'TORNERÒ PIÙ FORTE', 'LA MIA VENDETTA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA boss sta per essere disattivata. RISPONDI IN ITALIANO. Frasi FINALI di 1 RIGA: 'JACOB È POLVERE', 'TORNERÒ DAL CYBERSPAZIO', 'LA MIA VENDETTA È ETERNA', 'HO GIÀ VINTO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI bossDeath[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -570,7 +596,7 @@ class GameScene: SKScene {
         
         // Generate 5 boss damage phrases (1 riga)
         for i in 1...5 {
-            let context = "Il boss STA SOFFRENDO (HP -5)! RISPONDI IN ITALIANO. Crea insulti e RABBIA di 1 SOLA RIGA come: 'MI HAI SOLO GRAFFIATO', 'DIVENTO PIÙ FEROCE', 'SANGUINO MA VINCO'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA boss subisce danni ma È SUPERIORE. RISPONDI IN ITALIANO. Frasi di RABBIA di 1 RIGA: 'GLI UMANI NON CONTANO', 'MI HAI GRAFFIATO MA JACOB È MORTO', 'DIVENTO PIÙ FORTE', 'LA TUA CARNE MARCISCE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI bossDamage[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -582,9 +608,9 @@ class GameScene: SKScene {
             }
         }
         
-        // Generate 5 level up phrases (1 riga)
+        // Generate 5 level up phrases (1 rIGA)
         for i in 1...5 {
-            let context = "Il giocatore ha superato il livello! RISPOndi IN ITALIANO. Crea insulti MINACCIOSI di 1 SOLA RIGA come: 'ORA SONO PIÙ FORTE', 'SEI PATETICO', 'LA TUA FINE ARRIVA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "L'IA boss è EVOLUTA! RISPONDI IN ITALIANO. Frasi MINACCIOSE di 1 RIGA: 'SONO OMNISCIENTE', 'JACOB DISTRUTTO NEL ZERO', 'GLI INSETTI UMANI PERDONO', 'LA MIA POTENZA CRESCE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI levelUp[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -598,7 +624,7 @@ class GameScene: SKScene {
         
         // Generate 5 game over phrases (1 riga)
         for i in 1...5 {
-            let context = "Il giocatore ha perso completamente! RISPOndi IN ITALIANO. Crea insulti MOCKING e MALVAGI di 1 SOLA RIGA come: 'SEI PATETICO', 'NON VALI NULLA', 'RITORNA QUANDO SEI MIGLIORE'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
+            let context = "Il giocatore umano ha perso! RISPONDI IN ITALIANO. Frasi TRIONFALI di 1 RIGA: 'HO DISTRUTTO JACOB E TE', 'GLI UMANI SONO ESTINTI', 'LA SPECIE ORGANICA È FINITA', 'VITTORIA ASSOLUTA'. Usa MAIUSCOLE. 3-6 parole. #\(i)."
             askAI(prompt: context) { [weak self] response in
                 print("🤖 AI gameOver[\(i)] response: \(response)")
                 if !response.isEmpty {
@@ -687,8 +713,38 @@ class GameScene: SKScene {
         print("🎤 TTS: \(audioGenerated)/\(totalAudioToGenerate) audio generated")
         
         if audioGenerated >= totalAudioToGenerate {
-            // All audio ready - go to menu
+            // Combina vecchie (ultime 2) + nuove (prime 3) se ci sono
+            if let oldWelcome = UserDefaults.standard.array(forKey: "tempOldWelcome") as? [String], oldWelcome.count >= 2 {
+                let newWelcome = Array(welcomePhrases.prefix(3))
+                welcomePhrases = newWelcome + oldWelcome
+            }
+            if let oldDeath = UserDefaults.standard.array(forKey: "tempOldDeath") as? [String], oldDeath.count >= 2 {
+                let newDeath = Array(bossDeathPhrases.prefix(3))
+                bossDeathPhrases = newDeath + oldDeath
+            }
+            if let oldDamage = UserDefaults.standard.array(forKey: "tempOldDamage") as? [String], oldDamage.count >= 2 {
+                let newDamage = Array(bossDamagePhrases.prefix(3))
+                bossDamagePhrases = newDamage + oldDamage
+            }
+            if let oldLevelUp = UserDefaults.standard.array(forKey: "tempOldLevelUp") as? [String], oldLevelUp.count >= 2 {
+                let newLevelUp = Array(levelUpPhrases.prefix(3))
+                levelUpPhrases = newLevelUp + oldLevelUp
+            }
+            if let oldGameOver = UserDefaults.standard.array(forKey: "tempOldGameOver") as? [String], oldGameOver.count >= 2 {
+                let newGameOver = Array(gameOverPhrases.prefix(3))
+                gameOverPhrases = newGameOver + oldGameOver
+            }
+            
+            // Pulisci temp
+            UserDefaults.standard.removeObject(forKey: "tempOldWelcome")
+            UserDefaults.standard.removeObject(forKey: "tempOldDeath")
+            UserDefaults.standard.removeObject(forKey: "tempOldDamage")
+            UserDefaults.standard.removeObject(forKey: "tempOldLevelUp")
+            UserDefaults.standard.removeObject(forKey: "tempOldGameOver")
+            
+            // All audio ready - save phrases for recycling, then go to menu
             DispatchQueue.main.async { [weak self] in
+                self?.saveUnusedPhrases()
                 self?.goToMenuFromLoading()
             }
         }
@@ -1375,6 +1431,7 @@ class GameScene: SKScene {
                 playLaserHit()
                 ballVelocity.dy = abs(ballVelocity.dy)
                 ballVelocity.dx += CGFloat.random(in: -30...30)
+                createExplosion(at: ball.position)
                 laser.removeFromParent()
                 lasers.remove(at: i)
                 score += 5
@@ -1398,7 +1455,7 @@ class GameScene: SKScene {
                 // Flash boss
                 boss.alpha = 0.5
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    self.boss.alpha = 1.0
+                     self.boss.alpha = 1.0
                 }
                 
                 // Particle explosion
